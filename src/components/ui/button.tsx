@@ -17,11 +17,11 @@ const variants: Record<Variant, string> = {
   primary:
     "bg-gradient-to-b from-[#6b98ff] to-[#3b6cf6] text-white shadow-[0_8px_22px_-10px_rgba(59,108,246,0.9)] hover:from-[#7ea6ff] hover:to-[#4a78f8] border border-[#6d99ff]/40",
   secondary:
-    "bg-[#101a2c] text-slate-200 border border-line-strong hover:border-[#38507a] hover:bg-[#142138]",
-  ghost: "text-slate-400 hover:text-white hover:bg-white/[0.06] border border-transparent",
+    "bg-elevated text-body border border-line-strong hover:border-line-strong hover:bg-hover-strong",
+  ghost: "text-muted hover:text-strong hover:bg-hover-strong border border-transparent",
   danger:
-    "bg-danger/10 text-[#ff9d9d] border border-danger/30 hover:bg-danger/20 hover:text-[#ffc0c0]",
-  subtle: "bg-white/[0.04] text-slate-300 border border-line hover:bg-white/[0.07]",
+    "bg-danger/10 text-danger border border-danger/30 hover:bg-danger/20 hover:text-danger",
+  subtle: "bg-hover text-body border border-line hover:bg-hover-strong",
 };
 
 const sizes: Record<Size, string> = {

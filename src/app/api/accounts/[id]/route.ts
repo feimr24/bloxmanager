@@ -40,23 +40,29 @@ export async function PATCH(
     account.passwordEnc = encryptPassword(body.password);
   }
 
+  const suspendDays = Math.min(Math.max(Number(body.suspendDays ?? 7) || 7, 1), 90);
+
   if (typeof body.status === "string") {
     const status = body.status as AccountStatus;
     if (!ACCOUNT_STATUSES.includes(status)) return fail("Status akun tidak valid");
     if (status !== account.status) {
       if (status === "suspended") {
         account.suspendedAt = now;
+        account.suspendedUntil = new Date(Date.now() + suspendDays * 86400000).toISOString();
         db.audit.unshift({
           id: `aud_${Date.now().toString(36)}`,
           accountId: account.id,
           type: "suspend",
-          message: `Status akun berubah menjadi tersuspend`,
+          message: `Status akun berubah menjadi tersuspend (${suspendDays} hari)`,
           at: now,
         });
       } else {
         account.suspendedAt = undefined;
+        account.suspendedUntil = undefined;
       }
       account.status = status;
+    } else if (status === "suspended" && body.suspendDays !== undefined) {
+      account.suspendedUntil = new Date(Date.now() + suspendDays * 86400000).toISOString();
     }
   }
 

@@ -6,10 +6,10 @@ export type BadgeTone = "success" | "info" | "danger" | "warning" | "neutral" | 
 const tones: Record<BadgeTone, string> = {
   success: "border-success/25 bg-success/10 text-success",
   info: "border-info/25 bg-info/10 text-info",
-  danger: "border-danger/25 bg-danger/10 text-[#ff8e8e]",
+  danger: "border-danger/25 bg-danger/10 text-danger",
   warning: "border-warning/25 bg-warning/10 text-warning",
-  neutral: "border-line-strong bg-white/[0.04] text-slate-400",
-  brand: "border-brand/25 bg-brand/10 text-[#9db9ff]",
+  neutral: "border-line-strong bg-hover text-muted",
+  brand: "border-brand/25 bg-brand/10 text-accent",
 };
 
 export function Badge({

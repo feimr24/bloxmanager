@@ -45,9 +45,9 @@ export function Toaster() {
           key={item.id}
           className={cn(
             "animate-scale pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-2xl backdrop-blur-xl",
-            item.kind === "success" && "border-success/30 bg-[#0c1c19]/95 text-emerald-100",
-            item.kind === "error" && "border-danger/30 bg-[#1f1015]/95 text-rose-100",
-            item.kind === "info" && "border-brand/30 bg-[#0e1628]/95 text-slate-100",
+            item.kind === "success" && "border-success/30 bg-card/95 text-success",
+            item.kind === "error" && "border-danger/30 bg-card/95 text-body",
+            item.kind === "info" && "border-brand/30 bg-card/95 text-body",
           )}
         >
           {item.kind === "success" ? (
@@ -62,7 +62,7 @@ export function Toaster() {
             type="button"
             aria-label="Tutup notifikasi"
             onClick={() => setItems((current) => current.filter((entry) => entry.id !== item.id))}
-            className="rounded-md p-0.5 text-white/50 transition hover:bg-white/10 hover:text-white"
+            className="rounded-md p-0.5 text-faint transition hover:bg-hover-strong hover:text-strong"
           >
             <X className="size-3.5" />
           </button>

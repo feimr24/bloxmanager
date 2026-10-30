@@ -83,3 +83,24 @@ export const STATUS_LABEL: Record<string, string> = {
   completed: "Selesai",
   failed: "Gagal",
 };
+
+export function formatSuspendAge(since: string) {
+  const diff = Math.max(0, Date.now() - new Date(since).getTime());
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  if (days >= 1) return `${days} hari`;
+  if (hours >= 1) return `${hours} jam`;
+  const minutes = Math.max(1, Math.floor(diff / 60000));
+  return `${minutes} menit`;
+}
+
+export function formatCountdown(until: string) {
+  const diff = new Date(until).getTime() - Date.now();
+  if (diff <= 0) return "Sudah terbuka";
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  if (days > 0) return `${days} hari ${hours} jam`;
+  if (hours > 0) return `${hours} jam ${minutes} menit`;
+  return `${Math.max(1, minutes)} menit`;
+}

@@ -70,6 +70,7 @@ export function toAccountRow(
     status: account.status,
     createdAt: account.createdAt,
     suspendedAt: account.suspendedAt,
+    suspendedUntil: account.suspendedUntil,
     lastActiveAt: account.lastActiveAt,
     groupIds: memberships.map((group) => group.id),
     groupNames: memberships.map((group) => group.name),
@@ -122,6 +123,19 @@ export function listAccounts(
     })
     .map((account) => toAccountRow(account, db, lookup.get(account.id) ?? []));
 
+  const reopened = rows
+    .filter(
+      (row) =>
+        row.status === "suspended" &&
+        row.suspendedUntil &&
+        new Date(row.suspendedUntil).getTime() <= Date.now(),
+    )
+    .map((row) => ({
+      id: row.id,
+      username: row.username,
+      suspendedUntil: row.suspendedUntil as string,
+    }));
+
   const pageSize = Math.min(Math.max(options.pageSize ?? 20, 5), 100);
   const total = rows.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -135,6 +149,7 @@ export function listAccounts(
     pageSize,
     totalPages,
     counts: accountCounts(db),
+    reopened,
   };
 }
 
@@ -233,6 +248,24 @@ export function buildOverview(db: Database): OverviewResponse {
     }))
     .sort((a, b) => b.members - a.members);
 
+  const reopened = db.accounts
+    .filter(
+      (account) =>
+        account.status === "suspended" &&
+        account.suspendedUntil &&
+        new Date(account.suspendedUntil).getTime() <= Date.now(),
+    )
+    .map((account) => ({
+      id: account.id,
+      username: account.username,
+      suspendedUntil: account.suspendedUntil as string,
+      overdueDays: Math.max(
+        0,
+        Math.floor((Date.now() - new Date(account.suspendedUntil as string).getTime()) / 86400000),
+      ),
+    }))
+    .sort((a, b) => new Date(a.suspendedUntil).getTime() - new Date(b.suspendedUntil).getTime());
+
   return {
     stats: {
       total: counts.active + counts.available + counts.suspended,
@@ -249,5 +282,6 @@ export function buildOverview(db: Database): OverviewResponse {
     recentSessions,
     alerts,
     topGroups,
+    reopened,
   };
 }

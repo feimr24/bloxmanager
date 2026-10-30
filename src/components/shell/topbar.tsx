@@ -8,11 +8,13 @@ import {
   CalendarDays,
   ChevronRight,
   Menu,
+  RotateCcw,
   Search,
   ShieldAlert,
   UserRound,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import { ThemeToggle } from "./theme-toggle";
 import { cn, formatRelative } from "@/lib/utils";
 import type { OverviewResponse } from "@/lib/types";
 
@@ -39,6 +41,7 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
   const [query, setQuery] = useState("");
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [reopened, setReopened] = useState<OverviewResponse["reopened"]>([]);
   const today = new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
     day: "numeric",
@@ -50,7 +53,9 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
     fetch("/api/overview")
       .then((response) => response.json())
       .then((data: OverviewResponse) => {
-        if (alive) setAlerts(data.alerts);
+        if (!alive) return;
+        setAlerts(data.alerts);
+        setReopened(data.reopened);
       })
       .catch(() => undefined);
     return () => {
@@ -88,21 +93,21 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-[#060a12]/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-line bg-background/85 backdrop-blur-xl">
       <div className="flex h-[68px] items-center gap-3 px-4 sm:px-6 xl:px-8">
         <button
           type="button"
           onClick={onOpenMenu}
           aria-label="Buka menu navigasi"
-          className="rounded-lg border border-line p-2 text-slate-300 transition hover:bg-white/[0.06] lg:hidden"
+          className="rounded-lg border border-line p-2 text-body transition hover:bg-hover-strong lg:hidden"
         >
           <Menu className="size-4" />
         </button>
 
         <div className="hidden min-w-0 items-center gap-1.5 text-[12px] text-faint sm:flex">
-          <span className="font-medium text-slate-500">Workspace</span>
+          <span className="font-medium text-faint">Workspace</span>
           <ChevronRight className="size-3" />
-          <span className="truncate font-medium text-slate-300">{title}</span>
+          <span className="truncate font-medium text-body">{title}</span>
         </div>
 
         <form
@@ -122,19 +127,21 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Cari username…"
               aria-label="Cari username akun"
-              className="h-9 w-full rounded-lg border border-line bg-[#0a111d] pl-9 pr-14 text-[12.5px] text-slate-200 placeholder:text-faint transition focus:border-brand/60 focus:outline-none focus:ring-2 focus:ring-brand/15"
+              className="h-9 w-full rounded-lg border border-line bg-field pl-9 pr-14 text-[12.5px] text-body placeholder:text-faint transition focus:border-brand/60 focus:outline-none focus:ring-2 focus:ring-brand/15"
             />
-            <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-line bg-white/[0.03] px-1.5 py-0.5 text-[9.5px] font-medium text-faint">
+            <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-line bg-hover px-1.5 py-0.5 text-[9.5px] font-medium text-faint">
               ⌘K
             </kbd>
           </div>
         </form>
 
         <div className="ml-auto flex items-center gap-1.5 md:ml-3">
-          <span className="hidden items-center gap-1.5 rounded-lg border border-line bg-[#0a111d] px-2.5 py-1.5 text-[11px] text-muted xl:flex">
+          <span className="hidden items-center gap-1.5 rounded-lg border border-line bg-field px-2.5 py-1.5 text-[11px] text-muted xl:flex">
             <CalendarDays className="size-3.5 text-faint" />
             <span suppressHydrationWarning>{today}</span>
           </span>
+
+          <ThemeToggle />
 
           <div className="relative" ref={notifyRef}>
             <button
@@ -145,37 +152,58 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
               className={cn(
                 "relative rounded-lg border p-2 transition",
                 notifyOpen
-                  ? "border-line-strong bg-white/[0.06] text-white"
-                  : "border-transparent text-slate-400 hover:bg-white/[0.06] hover:text-white",
+                  ? "border-line-strong bg-hover-strong text-strong"
+                  : "border-transparent text-muted hover:bg-hover-strong hover:text-strong",
               )}
             >
               <Bell className="size-[17px]" />
-              {alerts.length > 0 && (
-                <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-danger ring-2 ring-[#060a12]" />
+              {alerts.length + reopened.length > 0 && (
+                <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-danger ring-2 ring-background" />
               )}
             </button>
 
             {notifyOpen && (
-              <div className="animate-scale absolute right-0 top-11 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-line-strong bg-[#0b1424] shadow-2xl">
+              <div className="animate-scale absolute right-0 top-11 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-xl border border-line-strong bg-card shadow-2xl">
                 <div className="flex items-center justify-between border-b border-line px-4 py-3">
-                  <p className="text-[12.5px] font-semibold text-white">Peringatan sistem</p>
-                  <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-medium text-[#ff8e8e]">
-                    {alerts.length} baru
+                  <p className="text-[12.5px] font-semibold text-strong">Notifikasi</p>
+                  <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-medium text-danger">
+                    {alerts.length + reopened.length} baru
                   </span>
                 </div>
-                <ul className="max-h-72 overflow-y-auto">
+                <ul className="max-h-80 overflow-y-auto">
+                  {reopened.map((item) => (
+                    <li key={item.id}>
+                      <Link
+                        href="/accounts?status=suspended"
+                        onClick={() => setNotifyOpen(false)}
+                        className="flex gap-3 border-b border-line/60 px-4 py-3 transition hover:bg-hover"
+                      >
+                        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
+                          <RotateCcw className="size-3.5" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-[12px] font-medium text-body">
+                            {item.username} sudah terbuka
+                          </span>
+                          <span className="mt-0.5 block text-[11px] text-success">
+                            Masa suspend berakhir · siap dipulihkan
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
                   {alerts.map((alert) => (
                     <li key={alert.id}>
                       <Link
                         href="/accounts?status=suspended"
                         onClick={() => setNotifyOpen(false)}
-                        className="flex gap-3 border-b border-line/60 px-4 py-3 transition last:border-0 hover:bg-white/[0.03]"
+                        className="flex gap-3 border-b border-line/60 px-4 py-3 transition last:border-0 hover:bg-hover"
                       >
                         <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-danger/10 text-danger">
                           <ShieldAlert className="size-3.5" />
                         </span>
                         <span className="min-w-0">
-                          <span className="block truncate text-[12px] font-medium text-slate-200">
+                          <span className="block truncate text-[12px] font-medium text-body">
                             {alert.username} tersuspend
                           </span>
                           <span className="mt-0.5 block text-[11px] text-faint">
@@ -194,12 +222,12 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
 
           <button
             type="button"
-            className="flex items-center gap-2 rounded-xl p-0.5 pr-1 transition hover:bg-white/[0.04]"
+            className="flex items-center gap-2 rounded-xl p-0.5 pr-1 transition hover:bg-hover"
             aria-label="Menu profil"
           >
             <Avatar name="Faris Alfarizi" size="sm" />
             <span className="hidden text-left leading-tight lg:block">
-              <span className="block text-[11.5px] font-medium text-slate-200">Faris Alfarizi</span>
+              <span className="block text-[11.5px] font-medium text-body">Faris Alfarizi</span>
               <span className="flex items-center gap-1 text-[9.5px] text-faint">
                 <UserRound className="size-2.5" /> Administrator
               </span>

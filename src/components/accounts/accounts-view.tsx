@@ -9,6 +9,7 @@ import {
   FolderPlus,
   Pencil,
   Plus,
+  RotateCcw,
   Search,
   ShieldCheck,
   Trash2,
@@ -16,7 +17,14 @@ import {
   X,
 } from "lucide-react";
 import type { AccountRow, AccountStatus, GroupRow } from "@/lib/types";
-import { cn, formatDate, formatNumber, formatRelative } from "@/lib/utils";
+import {
+  cn,
+  formatCountdown,
+  formatDate,
+  formatNumber,
+  formatRelative,
+  formatSuspendAge,
+} from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +43,7 @@ interface AccountsResponse {
   pageSize: number;
   totalPages: number;
   counts: Record<AccountStatus, number>;
+  reopened: { id: string; username: string; suspendedUntil: string }[];
 }
 
 const PAGE_SIZE = 20;
@@ -57,6 +66,8 @@ export function AccountsView() {
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [tick, setTick] = useState(0);
+  const [restoring, setRestoring] = useState(false);
   const [revealed, setRevealed] = useState<Record<string, string>>({});
   const [revealing, setRevealing] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -69,6 +80,41 @@ export function AccountsView() {
   const [assigning, setAssigning] = useState(false);
 
   const refresh = useCallback(() => setRefreshKey((value) => value + 1), []);
+  void tick;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setTick((value) => value + 1), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const isReopened = useCallback(
+    (account: AccountRow) =>
+      account.status === "suspended" &&
+      Boolean(account.suspendedUntil) &&
+      new Date(account.suspendedUntil as string).getTime() <= Date.now(),
+    [],
+  );
+
+  async function restore(ids?: string[]) {
+    setRestoring(true);
+    try {
+      const response = await fetch("/api/accounts/bulk-restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(ids ? { accountIds: ids } : {}),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error);
+      pushToast(
+        `${ids?.length ?? payload.restored.length} akun dipulihkan dan kembali tersedia.`,
+      );
+      refresh();
+    } catch {
+      pushToast("Gagal memulihkan akun", "error");
+    } finally {
+      setRestoring(false);
+    }
+  }
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -175,6 +221,7 @@ export function AccountsView() {
     }
   }
 
+  const suspendedView = status === "suspended";
   const allSelected = data ? data.items.length > 0 && data.items.every((item) => selected.has(item.id)) : false;
   const counts = data?.counts;
   const tabs = STATUS_TABS.map((tab) => ({
@@ -196,6 +243,35 @@ export function AccountsView() {
         }
       />
 
+      {data && data.reopened.length > 0 && (
+        <div className="animate-in-up mb-3 flex flex-col gap-3 rounded-xl border border-success/30 bg-success/[0.06] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2.5">
+            <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg border border-success/25 bg-success/10 text-success">
+              <RotateCcw className="size-3.5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold text-strong">
+                {data.reopened.length} akun sudah melewati masa suspend
+              </p>
+              <p className="mt-0.5 truncate text-[10.5px] text-muted">
+                Siap dipulihkan: {data.reopened.slice(0, 4).map((item) => item.username).join(", ")}
+                {data.reopened.length > 4 ? `, +${data.reopened.length - 4} lainnya` : ""}
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="shrink-0"
+            onClick={() => restore()}
+            loading={restoring}
+          >
+            <RotateCcw className="size-3.5" />
+            Pulihkan semua
+          </Button>
+        </div>
+      )}
+
       <div className="card-surface panel-glow animate-in-up overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-line px-4 py-3 sm:px-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="no-scrollbar flex items-center gap-1 overflow-x-auto">
@@ -211,15 +287,15 @@ export function AccountsView() {
                 className={cn(
                   "flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11.5px] font-medium transition",
                   status === tab.value
-                    ? "bg-white/[0.07] text-white"
-                    : "text-muted hover:bg-white/[0.03] hover:text-slate-200",
+                    ? "bg-hover-strong text-strong"
+                    : "text-muted hover:bg-hover hover:text-strong",
                 )}
               >
                 {tab.label}
                 <span
                   className={cn(
                     "tabular rounded px-1.5 py-0.5 text-[9.5px] font-semibold",
-                    status === tab.value ? "bg-brand/20 text-[#b9cdff]" : "bg-white/[0.05] text-faint",
+                    status === tab.value ? "bg-brand/20 text-accent" : "bg-hover-strong text-faint",
                   )}
                 >
                   {formatNumber(tab.count)}
@@ -243,7 +319,7 @@ export function AccountsView() {
                   type="button"
                   onClick={() => setQuery("")}
                   aria-label="Bersihkan pencarian"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-faint hover:text-white"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-faint hover:text-strong"
                 >
                   <X className="size-3" />
                 </button>
@@ -267,7 +343,7 @@ export function AccountsView() {
 
         {selected.size > 0 && (
           <div className="animate-in-up flex flex-wrap items-center gap-2 border-b border-brand/20 bg-brand/[0.06] px-4 py-2.5 sm:px-5">
-            <span className="text-[11.5px] font-medium text-[#b9cdff]">
+            <span className="text-[11.5px] font-medium text-accent">
               {selected.size} akun dipilih
             </span>
             <div className="ml-auto flex items-center gap-2">
@@ -285,7 +361,7 @@ export function AccountsView() {
         <div className="no-scrollbar overflow-x-auto">
           <table className="w-full min-w-[880px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-line bg-[#080f1c]/60 text-[9.5px] uppercase tracking-[0.12em] text-faint">
+              <tr className="border-b border-line bg-surface/60 text-[9.5px] uppercase tracking-[0.12em] text-faint">
                 <th className="w-10 px-4 py-2.5 sm:px-5">
                   <Checkbox
                     aria-label="Pilih semua akun di halaman ini"
@@ -301,6 +377,12 @@ export function AccountsView() {
                 <th className="px-3 py-2.5 font-medium">Username</th>
                 <th className="px-3 py-2.5 font-medium">Password</th>
                 <th className="px-3 py-2.5 font-medium">Status</th>
+                {suspendedView && (
+                  <>
+                    <th className="px-3 py-2.5 font-medium">Lama suspend</th>
+                    <th className="px-3 py-2.5 font-medium">Akan terbuka</th>
+                  </>
+                )}
                 <th className="px-3 py-2.5 font-medium">Grup</th>
                 <th className="px-3 py-2.5 font-medium">Terakhir aktif</th>
                 <th className="px-4 py-2.5 text-right font-medium sm:px-5">Aksi</th>
@@ -310,7 +392,7 @@ export function AccountsView() {
               {loading && !data &&
                 Array.from({ length: 8 }).map((_, index) => (
                   <tr key={index} className="border-b border-line/50">
-                    <td colSpan={7} className="px-5 py-3">
+                    <td colSpan={suspendedView ? 9 : 7} className="px-5 py-3">
                       <Skeleton className="h-8 w-full" />
                     </td>
                   </tr>
@@ -323,7 +405,7 @@ export function AccountsView() {
                   <tr
                     key={account.id}
                     className={cn(
-                      "border-b border-line/50 transition last:border-0 hover:bg-white/[0.02]",
+                      "border-b border-line/50 transition last:border-0 hover:bg-hover",
                       isSelected && "bg-brand/[0.04]",
                     )}
                   >
@@ -345,7 +427,7 @@ export function AccountsView() {
                       <div className="flex items-center gap-2.5">
                         <Avatar name={account.username} size="sm" />
                         <div className="min-w-0">
-                          <p className="truncate text-[12.5px] font-medium text-slate-100">
+                          <p className="truncate text-[12.5px] font-medium text-body">
                             {account.username}
                           </p>
                           <p className="text-[9.5px] text-faint">Dibuat {formatDate(account.createdAt)}</p>
@@ -357,7 +439,7 @@ export function AccountsView() {
                         <span
                           className={cn(
                             "min-w-[92px] font-mono text-[11.5px]",
-                            password ? "text-slate-200" : "tracking-[0.18em] text-slate-500",
+                            password ? "text-body" : "tracking-[0.18em] text-faint",
                           )}
                         >
                           {password ?? "••••••••••"}
@@ -368,7 +450,7 @@ export function AccountsView() {
                           disabled={revealing === account.id}
                           aria-label={password ? `Sembunyikan password ${account.username}` : `Tampilkan password ${account.username}`}
                           title={password ? "Sembunyikan" : "Tampilkan password (tercatat di audit)"}
-                          className="rounded-md p-1 text-faint transition hover:bg-white/[0.06] hover:text-slate-200 disabled:opacity-40"
+                          className="rounded-md p-1 text-faint transition hover:bg-hover-strong hover:text-strong disabled:opacity-40"
                         >
                           {password ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                         </button>
@@ -377,14 +459,45 @@ export function AccountsView() {
                     <td className="px-3 py-2.5">
                       <StatusBadge status={account.status} />
                     </td>
+                    {suspendedView && (
+                      <>
+                        <td className="px-3 py-2.5">
+                          <p className="text-[11.5px] text-body">
+                            {account.suspendedAt ? formatSuspendAge(account.suspendedAt) : "—"}
+                          </p>
+                          <p className="text-[9.5px] text-faint">
+                            {account.suspendedAt ? `sejak ${formatDate(account.suspendedAt)}` : ""}
+                          </p>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          {account.suspendedUntil ? (
+                            isReopened(account) ? (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-success/25 bg-success/10 px-2 py-0.5 text-[10px] font-medium text-success">
+                                <span className="size-1.5 rounded-full bg-success" />
+                                Sudah terbuka
+                              </span>
+                            ) : (
+                              <div>
+                                <p className="tabular text-[11.5px] font-medium text-body">
+                                  {formatCountdown(account.suspendedUntil)}
+                                </p>
+                                <p className="text-[9.5px] text-faint">lagi</p>
+                              </div>
+                            )
+                          ) : (
+                            <span className="text-[10.5px] text-faint">Tidak dijadwalkan</span>
+                          )}
+                        </td>
+                      </>
+                    )}
                     <td className="px-3 py-2.5">
                       {account.groupNames.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
-                          <span className="rounded-md border border-line bg-white/[0.03] px-1.5 py-0.5 text-[9.5px] text-slate-300">
+                          <span className="rounded-md border border-line bg-hover px-1.5 py-0.5 text-[9.5px] text-body">
                             {account.groupNames[0]}
                           </span>
                           {account.groupNames.length > 1 && (
-                            <span className="rounded-md border border-line bg-white/[0.03] px-1.5 py-0.5 text-[9.5px] text-faint">
+                            <span className="rounded-md border border-line bg-hover px-1.5 py-0.5 text-[9.5px] text-faint">
                               +{account.groupNames.length - 1}
                             </span>
                           )}
@@ -394,7 +507,7 @@ export function AccountsView() {
                       )}
                     </td>
                     <td className="px-3 py-2.5">
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-muted">
                         {account.runningSession
                           ? "Sedang bermain"
                           : account.lastActiveAt
@@ -407,6 +520,17 @@ export function AccountsView() {
                     </td>
                     <td className="px-4 py-2.5 sm:px-5">
                       <div className="flex items-center justify-end gap-1">
+                        {isReopened(account) && (
+                          <button
+                            type="button"
+                            onClick={() => restore([account.id])}
+                            aria-label={`Pulihkan ${account.username}`}
+                            title="Pulihkan akun menjadi tersedia"
+                            className="rounded-lg p-1.5 text-faint transition hover:bg-success/10 hover:text-success"
+                          >
+                            <RotateCcw className="size-3.5" />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
@@ -415,7 +539,7 @@ export function AccountsView() {
                           }}
                           aria-label={`Edit ${account.username}`}
                           title="Edit akun"
-                          className="rounded-lg p-1.5 text-faint transition hover:bg-brand/10 hover:text-[#9db9ff]"
+                          className="rounded-lg p-1.5 text-faint transition hover:bg-brand/10 hover:text-accent"
                         >
                           <Pencil className="size-3.5" />
                         </button>
@@ -424,7 +548,7 @@ export function AccountsView() {
                           onClick={() => setDeleteTarget(account)}
                           aria-label={`Hapus ${account.username}`}
                           title="Hapus akun"
-                          className="rounded-lg p-1.5 text-faint transition hover:bg-danger/10 hover:text-[#ff8e8e]"
+                          className="rounded-lg p-1.5 text-faint transition hover:bg-danger/10 hover:text-danger"
                         >
                           <Trash2 className="size-3.5" />
                         </button>
@@ -488,9 +612,9 @@ export function AccountsView() {
           open={formOpen}
           account={editing}
           onClose={() => setFormOpen(false)}
-          onSaved={() => {
+          onSaved={(message) => {
             setFormOpen(false);
-            pushToast(editing ? "Perubahan akun disimpan." : "Akun baru berhasil ditambahkan.");
+            pushToast(message ?? (editing ? "Perubahan akun disimpan." : "Akun baru berhasil ditambahkan."));
             refresh();
           }}
         />
@@ -514,10 +638,10 @@ export function AccountsView() {
           </>
         }
       >
-        <div className="rounded-xl border border-line bg-white/[0.02] p-3.5">
+        <div className="rounded-xl border border-line bg-hover p-3.5">
           <p className="text-[12px] text-muted">
             Akun yang akan dihapus:{" "}
-            <span className="font-medium text-white">{deleteTarget?.username}</span>
+            <span className="font-medium text-strong">{deleteTarget?.username}</span>
           </p>
         </div>
       </Modal>

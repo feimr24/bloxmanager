@@ -114,7 +114,7 @@ export function StartSessionModal({
           </div>
         </Field>
 
-        <div className="max-h-[196px] space-y-1 overflow-y-auto rounded-xl border border-line bg-[#080f1c] p-1.5">
+        <div className="max-h-[196px] space-y-1 overflow-y-auto rounded-xl border border-line bg-surface p-1.5">
           {loading && <p className="px-3 py-4 text-center text-[11.5px] text-faint">Memuat akun…</p>}
           {!loading && filtered.length === 0 && (
             <p className="px-3 py-4 text-center text-[11.5px] text-faint">Akun tidak ditemukan.</p>
@@ -127,12 +127,12 @@ export function StartSessionModal({
               aria-pressed={accountId === account.id}
               className={cn(
                 "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition",
-                accountId === account.id ? "bg-brand/15 ring-1 ring-brand/30" : "hover:bg-white/[0.04]",
+                accountId === account.id ? "bg-brand/15 ring-1 ring-brand/30" : "hover:bg-hover",
               )}
             >
               <Avatar name={account.username} size="xs" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[12px] font-medium text-slate-200">{account.username}</p>
+                <p className="truncate text-[12px] font-medium text-body">{account.username}</p>
                 <p className="text-[9.5px] text-faint">
                   {account.runningSession ? `Sedang di ${account.runningSession.deviceName}` : account.status === "active" ? "Aktif" : "Tersedia"}
                 </p>
@@ -145,7 +145,7 @@ export function StartSessionModal({
         </div>
 
         <div>
-          <p className="mb-1.5 text-[12.5px] font-medium text-slate-300">Tipe perangkat</p>
+          <p className="mb-1.5 text-[12.5px] font-medium text-body">Tipe perangkat</p>
           <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tipe perangkat">
             {DEVICES.map((device) => {
               const Icon = device.icon;
@@ -163,11 +163,11 @@ export function StartSessionModal({
                   className={cn(
                     "flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-[11.5px] font-medium transition",
                     active
-                      ? "border-brand/40 bg-brand/10 text-white"
-                      : "border-line bg-white/[0.02] text-muted hover:border-line-strong hover:text-slate-200",
+                      ? "border-brand/40 bg-brand/10 text-strong"
+                      : "border-line bg-hover text-muted hover:border-line-strong hover:text-strong",
                   )}
                 >
-                  <Icon className={cn("size-4", active ? "text-[#9db9ff]" : "text-faint")} />
+                  <Icon className={cn("size-4", active ? "text-accent" : "text-faint")} />
                   {device.label}
                 </button>
               );
@@ -207,7 +207,7 @@ export function StartSessionModal({
         </p>
 
         {error && (
-          <p role="alert" className="rounded-lg border border-danger/25 bg-danger/[0.07] px-3 py-2 text-[11.5px] text-[#ffb3b3]">
+          <p role="alert" className="rounded-lg border border-danger/25 bg-danger/[0.07] px-3 py-2 text-[11.5px] text-danger">
             {error}
           </p>
         )}

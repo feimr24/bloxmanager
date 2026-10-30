@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant light ([data-theme="light"] &);
+
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
@@ -8,8 +10,16 @@
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-foreground: var(--foreground);
+  --color-strong: var(--strong);
+  --color-body: var(--body);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
+  --color-field: var(--field);
+  --color-hover: var(--hover);
+  --color-hover-strong: var(--hover-strong);
+  --color-overlay: var(--overlay);
+  --color-accent: var(--accent);
+  --color-violet: var(--violet);
   --color-brand: var(--brand);
   --color-brand-strong: var(--brand-strong);
   --color-success: var(--success);
@@ -22,6 +32,7 @@
 }
 
 :root {
+  color-scheme: dark;
   --background: #060a12;
   --surface: #0a111d;
   --card: #0c1424;
@@ -29,14 +40,63 @@
   --line: #1a2539;
   --line-strong: #26344f;
   --foreground: #e8edf7;
+  --strong: #f8fafc;
+  --body: #d5deed;
   --muted: #93a1b8;
   --faint: #64748b;
+  --field: #0a1322;
+  --hover: rgba(255, 255, 255, 0.04);
+  --hover-strong: rgba(255, 255, 255, 0.08);
+  --overlay: rgba(2, 6, 13, 0.8);
+  --accent: #9db9ff;
+  --violet: #c4b5fd;
   --brand: #5b8cff;
   --brand-strong: #3b6cf6;
   --success: #3ddc97;
   --warning: #f5b544;
   --danger: #ff6b6b;
   --info: #58c7f3;
+  --card-grad: linear-gradient(180deg, rgba(17, 28, 48, 0.72), rgba(12, 20, 36, 0.92));
+  --card-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 18px 40px -24px rgba(0, 0, 0, 0.9);
+  --body-glow: rgba(59, 108, 246, 0.14);
+  --scroll-thumb: #1f2c44;
+  --scroll-thumb-hover: #2c3d5c;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --background: #f4f7fc;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --elevated: #eef3fa;
+  --line: #e3e9f3;
+  --line-strong: #cfdaea;
+  --foreground: #16233a;
+  --strong: #0b1526;
+  --body: #2c3a51;
+  --muted: #5c6b83;
+  --faint: #8795aa;
+  --field: #ffffff;
+  --hover: rgba(15, 26, 46, 0.04);
+  --hover-strong: rgba(15, 26, 46, 0.07);
+  --overlay: rgba(15, 23, 42, 0.45);
+  --accent: #2452d4;
+  --violet: #6d28d9;
+  --brand: #2f62e8;
+  --brand-strong: #2452d4;
+  --success: #0e9f6e;
+  --warning: #b45309;
+  --danger: #dc2626;
+  --info: #0284c7;
+  --card-grad: linear-gradient(180deg, #ffffff, #fbfcff);
+  --card-shadow:
+    0 1px 2px rgba(15, 26, 46, 0.04),
+    0 14px 30px -22px rgba(15, 26, 46, 0.3);
+  --body-glow: rgba(47, 98, 232, 0.1);
+  --scroll-thumb: #cbd5e4;
+  --scroll-thumb-hover: #a9b8cd;
 }
 
 * {
@@ -44,26 +104,23 @@
   border-color: var(--line);
 }
 
-html {
-  color-scheme: dark;
-}
-
 body {
   margin: 0;
   min-height: 100%;
   background:
-    radial-gradient(1100px 520px at 82% -12%, rgba(59, 108, 246, 0.14), transparent 62%),
+    radial-gradient(1100px 520px at 82% -12%, var(--body-glow), transparent 62%),
     radial-gradient(800px 420px at -8% 12%, rgba(61, 220, 151, 0.05), transparent 60%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 180ms ease, color 180ms ease;
 }
 
 ::selection {
-  background: rgba(91, 140, 255, 0.3);
-  color: #fff;
+  background: rgba(59, 108, 246, 0.25);
+  color: var(--strong);
 }
 
 ::-webkit-scrollbar {
@@ -74,12 +131,12 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1f2c44;
+  background: var(--scroll-thumb);
   border-radius: 999px;
   border: 2px solid var(--background);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2c3d5c;
+  background: var(--scroll-thumb-hover);
 }
 
 input,
@@ -96,20 +153,18 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid rgba(91, 140, 255, 0.75);
+  outline: 2px solid rgba(59, 108, 246, 0.75);
   outline-offset: 2px;
 }
 
 @layer utilities {
   .card-surface {
-    background: linear-gradient(180deg, rgba(17, 28, 48, 0.72), rgba(12, 20, 36, 0.92));
+    background: var(--card-grad);
     border: 1px solid var(--line);
     border-radius: 16px;
   }
   .panel-glow {
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.03) inset,
-      0 18px 40px -24px rgba(0, 0, 0, 0.9);
+    box-shadow: var(--card-shadow);
   }
   .tabular {
     font-variant-numeric: tabular-nums;
@@ -133,7 +188,7 @@ button {
     animation: scale 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .animate-shimmer {
-    background: linear-gradient(90deg, #0c1424 25%, #131f34 37%, #0c1424 63%);
+    background: linear-gradient(90deg, var(--card) 25%, var(--elevated) 37%, var(--card) 63%);
     background-size: 400% 100%;
     animation: shimmer 1.4s ease infinite;
   }

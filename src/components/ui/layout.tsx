@@ -22,7 +22,7 @@ export function PageHeader({
             {eyebrow}
           </p>
         )}
-        <h1 className="text-balance text-[26px] font-semibold leading-tight tracking-[-0.03em] text-white sm:text-[30px]">
+        <h1 className="text-balance text-[26px] font-semibold leading-tight tracking-[-0.03em] text-strong sm:text-[30px]">
           {title}
         </h1>
         {description && (
@@ -51,7 +51,7 @@ export function Segmented<T extends string>({
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className={cn("inline-flex items-center gap-0.5 rounded-lg border border-line bg-[#080f1c] p-0.5", className)}
+      className={cn("inline-flex items-center gap-0.5 rounded-lg border border-line bg-surface p-0.5", className)}
     >
       {options.map((option) => (
         <button
@@ -63,8 +63,8 @@ export function Segmented<T extends string>({
           className={cn(
             "rounded-[7px] px-2.5 py-1 text-[11.5px] font-medium transition",
             value === option.value
-              ? "bg-[#18253c] text-white shadow-sm"
-              : "text-faint hover:text-slate-300",
+              ? "bg-elevated text-strong shadow-sm"
+              : "text-faint hover:text-strong",
           )}
         >
           {option.label}
@@ -91,10 +91,10 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-      <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-line-strong bg-white/[0.03] text-faint">
+      <div className="mb-3 flex size-11 items-center justify-center rounded-xl border border-line-strong bg-hover text-faint">
         {icon}
       </div>
-      <p className="text-sm font-medium text-slate-200">{title}</p>
+      <p className="text-sm font-medium text-body">{title}</p>
       <p className="mt-1 max-w-sm text-[12.5px] leading-relaxed text-faint">{description}</p>
       {action && <div className="mt-4">{action}</div>}
     </div>

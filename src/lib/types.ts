@@ -11,6 +11,7 @@ export interface Account {
   createdAt: string;
   updatedAt: string;
   suspendedAt?: string;
+  suspendedUntil?: string;
   lastActiveAt?: string;
 }
 
@@ -63,6 +64,7 @@ export interface AccountRow {
   status: AccountStatus;
   createdAt: string;
   suspendedAt?: string;
+  suspendedUntil?: string;
   lastActiveAt?: string;
   groupIds: string[];
   groupNames: string[];
@@ -107,4 +109,5 @@ export interface OverviewResponse {
     message: string;
   }[];
   topGroups: { id: string; name: string; deviceType: DeviceType; members: number }[];
+  reopened: { id: string; username: string; suspendedUntil: string; overdueDays: number }[];
 }

@@ -5,7 +5,7 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { cn, formatNumber } from "@/lib/utils";
 
 const tones = {
-  brand: { text: "text-[#9db9ff]", bg: "bg-brand/10", ring: "border-brand/20", stroke: "#5b8cff" },
+  brand: { text: "text-accent", bg: "bg-brand/10", ring: "border-brand/20", stroke: "#5b8cff" },
   success: { text: "text-success", bg: "bg-success/10", ring: "border-success/20", stroke: "#3ddc97" },
   info: { text: "text-info", bg: "bg-info/10", ring: "border-info/20", stroke: "#58c7f3" },
   danger: { text: "text-danger", bg: "bg-danger/10", ring: "border-danger/20", stroke: "#ff6b6b" },
@@ -66,7 +66,7 @@ export function StatCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11.5px] font-medium tracking-wide text-muted">{label}</p>
-          <p className="tabular mt-2 text-[28px] font-semibold leading-none tracking-[-0.03em] text-white">
+          <p className="tabular mt-2 text-[28px] font-semibold leading-none tracking-[-0.03em] text-strong">
             {formatNumber(value)}
           </p>
         </div>
@@ -88,7 +88,7 @@ export function StatCard({
             <span
               className={cn(
                 "inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold",
-                positive ? "bg-success/10 text-success" : "bg-danger/10 text-[#ff8e8e]",
+                positive ? "bg-success/10 text-success" : "bg-danger/10 text-danger",
               )}
             >
               {positive ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}

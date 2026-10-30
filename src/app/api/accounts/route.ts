@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
   const username = String(body.username ?? "").trim();
   const password = String(body.password ?? "");
   const status = String(body.status ?? "available") as AccountStatus;
+  const suspendDays = Math.min(Math.max(Number(body.suspendDays ?? 7) || 7, 1), 90);
   const createdAtRaw = body.createdAt ? String(body.createdAt) : new Date().toISOString();
   const createdAt = new Date(createdAtRaw);
 
@@ -60,6 +61,10 @@ export async function POST(request: NextRequest) {
     createdAt: createdAt.toISOString(),
     updatedAt: now,
     suspendedAt: status === "suspended" ? now : undefined,
+    suspendedUntil:
+      status === "suspended"
+        ? new Date(Date.now() + suspendDays * 86400000).toISOString()
+        : undefined,
     lastActiveAt: status === "active" ? now : undefined,
   };
 

@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const base =
-  "w-full rounded-xl border border-line-strong bg-[#0a1322] px-3.5 text-sm text-slate-100 placeholder:text-faint transition focus:border-brand/70 focus:bg-[#0c1728] focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:opacity-50";
+  "w-full rounded-xl border border-line-strong bg-field px-3.5 text-sm text-body placeholder:text-faint transition focus:border-brand/70 focus:bg-field focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:opacity-50";
 
 export function Input({
   className,
@@ -71,12 +71,12 @@ export function Field({
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label htmlFor={htmlFor} className="flex items-center justify-between text-[12.5px] font-medium text-slate-300">
+      <label htmlFor={htmlFor} className="flex items-center justify-between text-[12.5px] font-medium text-body">
         <span>{label}</span>
         {hint && <span className="font-normal text-faint">{hint}</span>}
       </label>
       {children}
-      {error && <p className="text-[11.5px] text-[#ff9d9d]">{error}</p>}
+      {error && <p className="text-[11.5px] text-danger">{error}</p>}
     </div>
   );
 }

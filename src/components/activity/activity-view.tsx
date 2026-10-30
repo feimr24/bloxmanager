@@ -126,8 +126,8 @@ export function ActivityView() {
   const counts = data?.counts ?? { running: 0, completed: 0, failed: 0 };
   const stats = [
     { label: "Sesi berjalan", value: String(counts.running), icon: Play, tone: "text-success bg-success/10 border-success/20" },
-    { label: "Selesai", value: String(counts.completed), icon: CheckCircle2, tone: "text-[#9db9ff] bg-brand/10 border-brand/20" },
-    { label: "Gagal / suspend", value: String(counts.failed), icon: XCircle, tone: "text-[#ff8e8e] bg-danger/10 border-danger/20" },
+    { label: "Selesai", value: String(counts.completed), icon: CheckCircle2, tone: "text-accent bg-brand/10 border-brand/20" },
+    { label: "Gagal / suspend", value: String(counts.failed), icon: XCircle, tone: "text-danger bg-danger/10 border-danger/20" },
     { label: "Rata-rata durasi", value: avgDuration, icon: Timer, tone: "text-warning bg-warning/10 border-warning/20" },
   ];
 
@@ -167,7 +167,7 @@ export function ActivityView() {
               </span>
               <div className="min-w-0">
                 <p className="truncate text-[10.5px] text-faint">{stat.label}</p>
-                <p className="tabular mt-0.5 text-[19px] font-semibold leading-none text-white">{stat.value}</p>
+                <p className="tabular mt-0.5 text-[19px] font-semibold leading-none text-strong">{stat.value}</p>
               </div>
             </div>
           );
@@ -186,8 +186,8 @@ export function ActivityView() {
                 className={cn(
                   "shrink-0 rounded-lg px-2.5 py-1.5 text-[11.5px] font-medium transition",
                   status === filter.value
-                    ? "bg-white/[0.07] text-white"
-                    : "text-muted hover:bg-white/[0.03] hover:text-slate-200",
+                    ? "bg-hover-strong text-strong"
+                    : "text-muted hover:bg-hover hover:text-strong",
                 )}
               >
                 {filter.label}
@@ -210,7 +210,7 @@ export function ActivityView() {
                   type="button"
                   aria-label="Bersihkan pencarian"
                   onClick={() => setQuery("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-faint hover:text-white"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-faint hover:text-strong"
                 >
                   <X className="size-3" />
                 </button>
@@ -236,7 +236,7 @@ export function ActivityView() {
         <div className="no-scrollbar overflow-x-auto">
           <table className="w-full min-w-[900px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-line bg-[#080f1c]/60 text-[9.5px] uppercase tracking-[0.12em] text-faint">
+              <tr className="border-b border-line bg-surface/60 text-[9.5px] uppercase tracking-[0.12em] text-faint">
                 <th className="px-4 py-2.5 font-medium sm:px-5">Waktu Mulai</th>
                 <th className="px-3 py-2.5 font-medium">Username</th>
                 <th className="px-3 py-2.5 font-medium">Perangkat</th>
@@ -259,30 +259,30 @@ export function ActivityView() {
                 return (
                   <tr
                     key={session.id}
-                    className="border-b border-line/50 transition last:border-0 hover:bg-white/[0.02]"
+                    className="border-b border-line/50 transition last:border-0 hover:bg-hover"
                   >
                     <td className="px-4 py-2.5 sm:px-5">
-                      <p className="tabular text-[12px] text-slate-200">{formatTime(session.startedAt)}</p>
+                      <p className="tabular text-[12px] text-body">{formatTime(session.startedAt)}</p>
                       <p className="text-[9.5px] text-faint">{formatRelative(session.startedAt)}</p>
                     </td>
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2.5">
                         <Avatar name={session.username} size="xs" />
                         <div>
-                          <p className="text-[12px] font-medium text-slate-200">{session.username}</p>
+                          <p className="text-[12px] font-medium text-body">{session.username}</p>
                           <p className="text-[9.5px] text-faint">{session.id.toUpperCase()}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1.5 text-[11.5px] text-slate-300">
+                      <div className="flex items-center gap-1.5 text-[11.5px] text-body">
                         <DeviceIcon className="size-3.5 text-faint" />
                         {DEVICE_LABEL[session.deviceType]}
                       </div>
                       <p className="mt-0.5 text-[9.5px] text-faint">{session.deviceName}</p>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className="tabular inline-flex items-center gap-1.5 text-[11.5px] text-slate-300">
+                      <span className="tabular inline-flex items-center gap-1.5 text-[11.5px] text-body">
                         <Clock3 className="size-3 text-faint" />
                         {formatDuration(session.startedAt, session.endedAt)}
                         {session.status === "running" && (
@@ -336,8 +336,8 @@ export function ActivityView() {
         {data && data.items.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3 text-[10.5px] text-faint sm:px-5">
             <span>
-              Menampilkan <span className="text-slate-300">{data.items.length}</span> dari{" "}
-              <span className="tabular text-slate-300">{data.total}</span> sesi tercatat
+              Menampilkan <span className="text-body">{data.items.length}</span> dari{" "}
+              <span className="tabular text-body">{data.total}</span> sesi tercatat
             </span>
             <span className="flex items-center gap-1.5">
               <span className="size-1.5 animate-pulse rounded-full bg-success" />
@@ -391,11 +391,11 @@ export function ActivityView() {
           </>
         }
       >
-        <div className="rounded-xl border border-line bg-white/[0.02] p-3.5">
+        <div className="rounded-xl border border-line bg-hover p-3.5">
           <div className="flex items-center gap-2.5">
             <Avatar name={endTarget?.username ?? ""} size="sm" />
             <div>
-              <p className="text-[12.5px] font-medium text-white">{endTarget?.username}</p>
+              <p className="text-[12.5px] font-medium text-strong">{endTarget?.username}</p>
               <p className="text-[10.5px] text-faint">
                 {endTarget?.deviceName} · mulai {endTarget ? formatTime(endTarget.startedAt) : ""} ·{" "}
                 {endTarget ? formatDuration(endTarget.startedAt) : ""}

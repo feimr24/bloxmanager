@@ -29,9 +29,9 @@ import { Modal } from "@/components/ui/modal";
 import { pushToast } from "@/components/ui/toast";
 
 const DEVICE_META: Record<DeviceType, { label: string; icon: typeof Laptop; color: string; ring: string }> = {
-  pc: { label: "PC / Rig", icon: Laptop, color: "#5b8cff", ring: "border-brand/25 bg-brand/10 text-[#9db9ff]" },
+  pc: { label: "PC / Rig", icon: Laptop, color: "#5b8cff", ring: "border-brand/25 bg-brand/10 text-accent" },
   handphone: { label: "Handphone", icon: Smartphone, color: "#58c7f3", ring: "border-info/25 bg-info/10 text-info" },
-  redfingers: { label: "Redfingers", icon: Cloud, color: "#a78bfa", ring: "border-[#a78bfa]/25 bg-[#a78bfa]/10 text-[#c4b5fd]" },
+  redfingers: { label: "Redfingers", icon: Cloud, color: "#a78bfa", ring: "border-violet/25 bg-violet/10 text-violet" },
 };
 
 const CAPACITY = 200;
@@ -233,7 +233,7 @@ export function GroupsView() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-[13px] font-semibold text-white">{group.name}</p>
+                      <p className="truncate text-[13px] font-semibold text-strong">{group.name}</p>
                       {active && <span className="size-1.5 shrink-0 rounded-full bg-brand" />}
                     </div>
                     <p className="mt-0.5 line-clamp-1 text-[10.5px] text-faint">{group.description}</p>
@@ -243,12 +243,12 @@ export function GroupsView() {
 
                 <div className="mt-3 flex items-center justify-between text-[10.5px]">
                   <span className="text-muted">
-                    <span className="tabular font-semibold text-slate-200">{formatNumber(group.memberIds.length)}</span>{" "}
+                    <span className="tabular font-semibold text-body">{formatNumber(group.memberIds.length)}</span>{" "}
                     anggota
                   </span>
                   <span className="text-faint">{percent.toFixed(0)}% kapasitas</span>
                 </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-hover-strong">
                   <div
                     className="h-full rounded-full transition-all"
                     style={{ width: `${percent}%`, background: meta.color }}
@@ -264,7 +264,7 @@ export function GroupsView() {
           })}
 
           <div className="rounded-xl border border-dashed border-line-strong/70 px-4 py-3 text-[10.5px] leading-relaxed text-faint">
-            <span className="flex items-center gap-1.5 font-medium text-slate-400">
+            <span className="flex items-center gap-1.5 font-medium text-muted">
               <GripVertical className="size-3.5" /> Tips alokasi
             </span>
             Seret akun dari panel “Tambah akun” langsung ke kartu grup, atau pilih beberapa akun sekaligus dengan
@@ -278,7 +278,7 @@ export function GroupsView() {
               <div className="flex flex-col gap-3 border-b border-line px-4 py-4 sm:px-5 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="text-[16px] font-semibold text-white">{selected.name}</h2>
+                    <h2 className="text-[16px] font-semibold text-strong">{selected.name}</h2>
                     <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium", DEVICE_META[selected.deviceType].ring)}>
                       {DEVICE_META[selected.deviceType].label}
                     </span>
@@ -307,10 +307,10 @@ export function GroupsView() {
               </div>
 
               {addOpen && (
-                <div className="animate-in-up border-b border-line bg-[#080f1c]/60 px-4 py-4 sm:px-5">
+                <div className="animate-in-up border-b border-line bg-surface/60 px-4 py-4 sm:px-5">
                   <div className="mb-2.5 flex items-center justify-between">
                     <div>
-                      <p className="text-[12.5px] font-semibold text-white">Tambah akun ke grup</p>
+                      <p className="text-[12.5px] font-semibold text-strong">Tambah akun ke grup</p>
                       <p className="text-[10.5px] text-faint">
                         Pilih beberapa akun (bulk) atau seret satu akun ke kartu grup.
                       </p>
@@ -319,7 +319,7 @@ export function GroupsView() {
                       type="button"
                       onClick={() => setAddOpen(false)}
                       aria-label="Tutup panel tambah akun"
-                      className="rounded-lg p-1.5 text-faint hover:bg-white/[0.06] hover:text-white"
+                      className="rounded-lg p-1.5 text-faint hover:bg-hover-strong hover:text-strong"
                     >
                       <X className="size-4" />
                     </button>
@@ -336,7 +336,7 @@ export function GroupsView() {
                     />
                   </div>
 
-                  <div className="max-h-[220px] overflow-y-auto rounded-xl border border-line bg-[#070d18]">
+                  <div className="max-h-[220px] overflow-y-auto rounded-xl border border-line bg-surface">
                     {loadingCandidates && <p className="px-3 py-4 text-center text-[11px] text-faint">Memuat akun…</p>}
                     {!loadingCandidates && available.length === 0 && (
                       <p className="px-3 py-4 text-center text-[11px] text-faint">
@@ -354,7 +354,7 @@ export function GroupsView() {
                             event.dataTransfer.effectAllowed = "move";
                           }}
                           className={cn(
-                            "flex cursor-pointer items-center gap-2.5 border-b border-line/50 px-3 py-2 transition last:border-0 hover:bg-white/[0.03]",
+                            "flex cursor-pointer items-center gap-2.5 border-b border-line/50 px-3 py-2 transition last:border-0 hover:bg-hover",
                             checked && "bg-brand/[0.05]",
                           )}
                         >
@@ -370,7 +370,7 @@ export function GroupsView() {
                             }}
                           />
                           <Avatar name={account.username} size="xs" />
-                          <span className="min-w-0 flex-1 truncate text-[11.5px] text-slate-200">
+                          <span className="min-w-0 flex-1 truncate text-[11.5px] text-body">
                             {account.username}
                           </span>
                           {account.groupNames.length > 0 && (
@@ -442,7 +442,7 @@ export function GroupsView() {
 
               <div className="no-scrollbar max-h-[520px] overflow-auto">
                 <table className="w-full min-w-[560px] border-collapse text-left">
-                  <thead className="sticky top-0 z-10 bg-[#0a1220]">
+                  <thead className="sticky top-0 z-10 bg-surface">
                     <tr className="border-b border-line text-[9.5px] uppercase tracking-[0.12em] text-faint">
                       <th className="w-10 px-4 py-2.5 sm:px-5">
                         <Checkbox
@@ -462,7 +462,7 @@ export function GroupsView() {
                   </thead>
                   <tbody>
                     {filteredMembers.map((member) => (
-                      <tr key={member.id} className="border-b border-line/50 transition last:border-0 hover:bg-white/[0.02]">
+                      <tr key={member.id} className="border-b border-line/50 transition last:border-0 hover:bg-hover">
                         <td className="px-4 py-2.5 sm:px-5">
                           <Checkbox
                             aria-label={`Pilih ${member.username}`}
@@ -481,7 +481,7 @@ export function GroupsView() {
                           <div className="flex items-center gap-2.5">
                             <Avatar name={member.username} size="sm" />
                             <div>
-                              <p className="text-[12px] font-medium text-slate-200">{member.username}</p>
+                              <p className="text-[12px] font-medium text-body">{member.username}</p>
                               <p className="text-[9.5px] text-faint">
                                 {member.runningSession ? member.runningSession.deviceName : "Tidak ada sesi aktif"}
                               </p>
@@ -497,7 +497,7 @@ export function GroupsView() {
                             onClick={() => removeMembers([member.id])}
                             aria-label={`Keluarkan ${member.username} dari grup`}
                             title="Keluarkan dari grup"
-                            className="rounded-lg p-1.5 text-faint transition hover:bg-danger/10 hover:text-[#ff8e8e]"
+                            className="rounded-lg p-1.5 text-faint transition hover:bg-danger/10 hover:text-danger"
                           >
                             <UserMinus className="size-3.5" />
                           </button>
@@ -571,9 +571,9 @@ export function GroupsView() {
           </>
         }
       >
-        <div className="rounded-xl border border-line bg-white/[0.02] p-3.5 text-[12px] text-muted">
-          Grup <span className="font-medium text-white">{deleteTarget?.name}</span> berisi{" "}
-          <span className="text-white">{deleteTarget?.memberIds.length}</span> akun.
+        <div className="rounded-xl border border-line bg-hover p-3.5 text-[12px] text-muted">
+          Grup <span className="font-medium text-strong">{deleteTarget?.name}</span> berisi{" "}
+          <span className="text-strong">{deleteTarget?.memberIds.length}</span> akun.
         </div>
       </Modal>
     </div>
@@ -675,7 +675,7 @@ function GroupFormModal({
           </Select>
         </Field>
         {error && (
-          <p role="alert" className="rounded-lg border border-danger/25 bg-danger/[0.07] px-3 py-2 text-[11.5px] text-[#ffb3b3]">
+          <p role="alert" className="rounded-lg border border-danger/25 bg-danger/[0.07] px-3 py-2 text-[11.5px] text-danger">
             {error}
           </p>
         )}

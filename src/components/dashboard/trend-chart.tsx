@@ -57,10 +57,10 @@ export function TrendChart({ trend }: { trend: TrendPoint[] }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-lg border border-brand/20 bg-brand/10 text-[#9db9ff]">
+            <span className="flex size-7 items-center justify-center rounded-lg border border-brand/20 bg-brand/10 text-accent">
               <Activity className="size-3.5" />
             </span>
-            <h2 className="text-[14px] font-semibold text-white">Tren Aktivitas Akun</h2>
+            <h2 className="text-[14px] font-semibold text-strong">Tren Aktivitas Akun</h2>
           </div>
           <p className="mt-1.5 text-[11.5px] text-muted">
             Akun aktif vs tersuspend · {days} hari terakhir
@@ -88,7 +88,7 @@ export function TrendChart({ trend }: { trend: TrendPoint[] }) {
       </div>
 
       <div className="mt-5 flex items-baseline gap-3">
-        <p className="tabular text-[26px] font-semibold tracking-[-0.02em] text-white">
+        <p className="tabular text-[26px] font-semibold tracking-[-0.02em] text-strong">
           {formatNumber(current?.active ?? 0)}
         </p>
         <span className="inline-flex items-center gap-0.5 rounded-md bg-success/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-success">
@@ -116,10 +116,10 @@ export function TrendChart({ trend }: { trend: TrendPoint[] }) {
         >
           {hover !== null && current && (
             <div
-              className="pointer-events-none absolute top-0 z-20 -translate-x-1/2 rounded-lg border border-line-strong bg-[#0b1525]/95 px-2.5 py-1.5 text-[10.5px] shadow-xl backdrop-blur"
+              className="pointer-events-none absolute top-0 z-20 -translate-x-1/2 rounded-lg border border-line-strong bg-card/95 px-2.5 py-1.5 text-[10.5px] shadow-xl backdrop-blur"
               style={{ left: `${(activeIndex / Math.max(visible.length - 1, 1)) * 100}%` }}
             >
-              <p className="mb-1 font-medium text-slate-200">
+              <p className="mb-1 font-medium text-body">
                 {new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short" }).format(
                   new Date(current.date),
                 )}
@@ -127,7 +127,7 @@ export function TrendChart({ trend }: { trend: TrendPoint[] }) {
               <p className="flex items-center gap-1.5 text-success">
                 <span className="size-1.5 rounded-full bg-success" /> {current.active} aktif
               </p>
-              <p className="flex items-center gap-1.5 text-[#ff8e8e]">
+              <p className="flex items-center gap-1.5 text-danger">
                 <span className="size-1.5 rounded-full bg-danger" /> {current.suspended} suspend
               </p>
             </div>
@@ -159,7 +159,7 @@ export function TrendChart({ trend }: { trend: TrendPoint[] }) {
                 x2={W}
                 y1={toY(value)}
                 y2={toY(value)}
-                stroke="#1a2539"
+                stroke="var(--line)"
                 strokeDasharray="4 6"
                 vectorEffect="non-scaling-stroke"
               />
@@ -177,7 +177,7 @@ export function TrendChart({ trend }: { trend: TrendPoint[] }) {
             <path
               d={suspendLine}
               fill="none"
-              stroke="#ff6b6b"
+              stroke="var(--danger)"
               strokeWidth="1.8"
               strokeDasharray="5 5"
               strokeLinecap="round"
@@ -190,7 +190,7 @@ export function TrendChart({ trend }: { trend: TrendPoint[] }) {
                 x2={toX(hover)}
                 y1={PAD_TOP}
                 y2={H}
-                stroke="#3a4d6f"
+                stroke="var(--line-strong)"
                 strokeDasharray="3 4"
                 vectorEffect="non-scaling-stroke"
               />
@@ -208,7 +208,7 @@ export function TrendChart({ trend }: { trend: TrendPoint[] }) {
                 transition: "opacity 120ms",
               }}
             >
-              <span className="block size-2.5 rounded-full border-2 border-[#0c1424] bg-[#8fb0ff] shadow-[0_0_0_3px_rgba(91,140,255,0.2)]" />
+              <span className="block size-2.5 rounded-full border-2 border-card bg-accent shadow-[0_0_0_3px_rgba(91,140,255,0.2)]" />
             </div>
           ))}
         </div>
@@ -229,13 +229,13 @@ export function TrendChart({ trend }: { trend: TrendPoint[] }) {
       <div className="mt-3 grid grid-cols-3 gap-2 border-t border-line pt-3">
         <div>
           <p className="text-[9.5px] uppercase tracking-wide text-faint">Rata-rata aktif</p>
-          <p className="tabular mt-0.5 text-[13px] font-medium text-slate-200">
+          <p className="tabular mt-0.5 text-[13px] font-medium text-body">
             {formatNumber(Math.round(visible.reduce((sum, point) => sum + point.active, 0) / visible.length))}
           </p>
         </div>
         <div>
           <p className="text-[9.5px] uppercase tracking-wide text-faint">Puncak suspend</p>
-          <p className="tabular mt-0.5 text-[13px] font-medium text-[#ff8e8e]">
+          <p className="tabular mt-0.5 text-[13px] font-medium text-danger">
             {Math.max(...visible.map((point) => point.suspended))}
           </p>
         </div>

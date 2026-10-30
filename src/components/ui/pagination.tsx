@@ -31,9 +31,9 @@ export function Pagination({
   return (
     <div className="flex flex-col gap-3 border-t border-line px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
       <p className="text-[11px] text-faint">
-        Menampilkan <span className="tabular text-slate-300">{start}</span>–
-        <span className="tabular text-slate-300">{end}</span> dari{" "}
-        <span className="tabular text-slate-300">{total.toLocaleString("id-ID")}</span> akun
+        Menampilkan <span className="tabular text-body">{start}</span>–
+        <span className="tabular text-body">{end}</span> dari{" "}
+        <span className="tabular text-body">{total.toLocaleString("id-ID")}</span> akun
       </p>
       <div className="flex items-center gap-1">
         <button
@@ -41,7 +41,7 @@ export function Pagination({
           onClick={() => onPage(page - 1)}
           disabled={page <= 1}
           aria-label="Halaman sebelumnya"
-          className="flex size-8 items-center justify-center rounded-lg border border-line text-faint transition hover:border-line-strong hover:text-white disabled:pointer-events-none disabled:opacity-40"
+          className="flex size-8 items-center justify-center rounded-lg border border-line text-faint transition hover:border-line-strong hover:text-strong disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronLeft className="size-3.5" />
         </button>
@@ -54,8 +54,8 @@ export function Pagination({
             className={cn(
               "tabular flex size-8 items-center justify-center rounded-lg border text-[11.5px] font-medium transition",
               value === page
-                ? "border-brand/40 bg-brand/15 text-white"
-                : "border-line text-muted hover:border-line-strong hover:text-white",
+                ? "border-brand/40 bg-brand/15 text-strong"
+                : "border-line text-muted hover:border-line-strong hover:text-strong",
             )}
           >
             {value}
@@ -66,7 +66,7 @@ export function Pagination({
           onClick={() => onPage(page + 1)}
           disabled={page >= totalPages}
           aria-label="Halaman berikutnya"
-          className="flex size-8 items-center justify-center rounded-lg border border-line text-faint transition hover:border-line-strong hover:text-white disabled:pointer-events-none disabled:opacity-40"
+          className="flex size-8 items-center justify-center rounded-lg border border-line text-faint transition hover:border-line-strong hover:text-strong disabled:pointer-events-none disabled:opacity-40"
         >
           <ChevronRight className="size-3.5" />
         </button>

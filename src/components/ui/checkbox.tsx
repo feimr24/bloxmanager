@@ -1,17 +1,31 @@
 "use client";
 
 import type { InputHTMLAttributes } from "react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function Checkbox({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
+export function Checkbox({ className, checked, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <input
-      type="checkbox"
-      {...props}
-      className={cn(
-        "size-4 shrink-0 cursor-pointer appearance-none rounded-[5px] border border-line-strong bg-[#0a1322] transition checked:border-brand checked:bg-brand checked:bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22 fill=%22none%22><path d=%22M3.5 8.5l3 3 6-7%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>')] checked:bg-center checked:bg-no-repeat focus-visible:outline-offset-2 disabled:opacity-40",
-        className,
-      )}
-    />
+    <span className={cn("relative inline-flex size-4 shrink-0 items-center justify-center", className)}>
+      <input
+        type="checkbox"
+        checked={checked}
+        {...props}
+        className="peer absolute inset-0 z-10 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+      />
+      <span
+        aria-hidden
+        className={cn(
+          "pointer-events-none flex size-4 items-center justify-center rounded-[5px] border transition-colors duration-150",
+          "peer-focus-visible:ring-2 peer-focus-visible:ring-brand/45 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background",
+          checked ? "border-brand bg-brand text-white" : "border-faint/60 bg-field hover:border-faint",
+        )}
+      >
+        <Check
+          className={cn("size-3 transition-opacity duration-150", checked ? "opacity-100" : "opacity-0")}
+          strokeWidth={3}
+        />
+      </span>
+    </span>
   );
 }

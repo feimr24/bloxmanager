@@ -26,13 +26,13 @@ export function DeviceDonut({
     <div className="card-surface panel-glow animate-in-up flex h-full flex-col p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-[14px] font-semibold text-white">Alokasi Perangkat</h2>
+          <h2 className="text-[14px] font-semibold text-strong">Alokasi Perangkat</h2>
           <p className="mt-1 text-[11.5px] text-muted">Sebaran akun per environment</p>
         </div>
         <button
           type="button"
           aria-label="Opsi alokasi perangkat"
-          className="rounded-lg p-1.5 text-faint transition hover:bg-white/[0.06] hover:text-white"
+          className="rounded-lg p-1.5 text-faint transition hover:bg-hover-strong hover:text-strong"
         >
           <MoreHorizontal className="size-4" />
         </button>
@@ -41,7 +41,7 @@ export function DeviceDonut({
       <div className="mt-4 flex items-center gap-4">
         <div className="relative size-[146px] shrink-0">
           <svg viewBox="0 0 140 140" className="size-full -rotate-90">
-            <circle cx="70" cy="70" r={radius} fill="none" stroke="#16223a" strokeWidth="12" />
+            <circle cx="70" cy="70" r={radius} fill="none" stroke="var(--elevated)" strokeWidth="12" />
             {data.map((item, index) => {
               const meta = DEVICE_META[item.deviceType];
               const length = (item.accounts / totalAccounts) * circumference;
@@ -63,7 +63,7 @@ export function DeviceDonut({
             })}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="tabular text-[24px] font-semibold leading-none tracking-[-0.02em] text-white">
+            <span className="tabular text-[24px] font-semibold leading-none tracking-[-0.02em] text-strong">
               {formatNumber(totalAccounts)}
             </span>
             <span className="mt-1 text-[9.5px] uppercase tracking-[0.12em] text-faint">Teralokasi</span>
@@ -79,12 +79,12 @@ export function DeviceDonut({
               <div key={item.deviceType} className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <Icon className="size-3.5 shrink-0" style={{ color: meta.color }} />
-                  <span className="truncate text-[11.5px] text-slate-300">{meta.label}</span>
-                  <span className="tabular ml-auto text-[11px] font-medium text-slate-200">
+                  <span className="truncate text-[11.5px] text-body">{meta.label}</span>
+                  <span className="tabular ml-auto text-[11px] font-medium text-body">
                     {percent.toFixed(0)}%
                   </span>
                 </div>
-                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-hover-strong">
                   <div
                     className="h-full rounded-full"
                     style={{ width: `${percent}%`, background: meta.color }}
@@ -99,14 +99,14 @@ export function DeviceDonut({
         </div>
       </div>
 
-      <div className="mt-4 space-y-1.5 rounded-xl border border-line bg-white/[0.02] p-2.5">
+      <div className="mt-4 space-y-1.5 rounded-xl border border-line bg-hover p-2.5">
         <p className="mb-1.5 text-[9.5px] uppercase tracking-[0.12em] text-faint">Status environment</p>
         {data.map((item) => {
           const meta = DEVICE_META[item.deviceType];
           const warn = item.deviceType === "redfingers";
           return (
             <div key={item.deviceType} className="flex items-center justify-between text-[10.5px]">
-              <span className="flex items-center gap-1.5 text-slate-300">
+              <span className="flex items-center gap-1.5 text-body">
                 <span className="size-1.5 rounded-full" style={{ background: meta.color }} />
                 {meta.label}
               </span>

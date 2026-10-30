@@ -44,14 +44,14 @@ export function Modal({
         type="button"
         aria-label="Tutup dialog"
         onClick={onClose}
-        className="animate-fade absolute inset-0 cursor-default bg-[#02060d]/80 backdrop-blur-sm"
+        className="animate-fade absolute inset-0 cursor-default bg-overlay backdrop-blur-sm"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
         className={cn(
-          "animate-scale relative flex max-h-[92vh] w-full flex-col overflow-hidden border border-line-strong bg-[#0b1424] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)]",
+          "animate-scale relative flex max-h-[92vh] w-full flex-col overflow-hidden border border-line-strong bg-card shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)]",
           "rounded-t-2xl sm:rounded-2xl",
           size === "sm" && "sm:max-w-md",
           size === "md" && "sm:max-w-xl",
@@ -60,7 +60,7 @@ export function Modal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
           <div>
-            <h2 id="modal-title" className="text-[15px] font-semibold tracking-[-0.01em] text-white">
+            <h2 id="modal-title" className="text-[15px] font-semibold tracking-[-0.01em] text-strong">
               {title}
             </h2>
             {description && <p className="mt-0.5 text-[12.5px] text-muted">{description}</p>}
@@ -69,14 +69,14 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="Tutup"
-            className="rounded-lg p-1.5 text-faint transition hover:bg-white/[0.06] hover:text-white"
+            className="rounded-lg p-1.5 text-faint transition hover:bg-hover-strong hover:text-strong"
           >
             <X className="size-4" />
           </button>
         </div>
         <div className="no-scrollbar flex-1 overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
         {footer && (
-          <div className="flex items-center justify-end gap-2 border-t border-line bg-[#080f1c] px-5 py-3.5 sm:px-6">
+          <div className="flex items-center justify-end gap-2 border-t border-line bg-surface px-5 py-3.5 sm:px-6">
             {footer}
           </div>
         )}

@@ -80,7 +80,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="card-surface mx-auto mt-10 max-w-md p-8 text-center">
-        <p className="text-sm font-medium text-white">Gagal memuat ringkasan</p>
+        <p className="text-sm font-medium text-strong">Gagal memuat ringkasan</p>
         <p className="mt-1.5 text-[12.5px] text-muted">Periksa koneksi ke API lalu coba lagi.</p>
         <Button className="mt-4" size="sm" onClick={() => load()}>
           <RefreshCw className="size-3.5" /> Muat ulang
@@ -205,10 +205,10 @@ export default function DashboardPage() {
           <AlertsCard alerts={data.alerts} />
           <div className="card-surface panel-glow animate-in-up p-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-[12.5px] font-semibold text-white">Grup Terbesar</h3>
+              <h3 className="text-[12.5px] font-semibold text-strong">Grup Terbesar</h3>
               <Link
                 href="/groups"
-                className="inline-flex items-center gap-1 text-[10.5px] font-medium text-[#9db9ff] hover:text-white"
+                className="inline-flex items-center gap-1 text-[10.5px] font-medium text-accent hover:text-strong"
               >
                 Kelola <ArrowUpRight className="size-3" />
               </Link>
@@ -217,15 +217,15 @@ export default function DashboardPage() {
               {data.topGroups.slice(0, 3).map((group, index) => {
                 const width = (group.members / (data.topGroups[0]?.members || 1)) * 100;
                 return (
-                  <Link href="/groups" key={group.id} className="block rounded-lg p-1 transition hover:bg-white/[0.03]">
+                  <Link href="/groups" key={group.id} className="block rounded-lg p-1 transition hover:bg-hover">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="truncate text-slate-300">
+                      <span className="truncate text-body">
                         <span className="mr-1.5 text-faint">0{index + 1}</span>
                         {group.name}
                       </span>
-                      <span className="tabular ml-2 shrink-0 text-slate-400">{group.members}</span>
+                      <span className="tabular ml-2 shrink-0 text-muted">{group.members}</span>
                     </div>
-                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/[0.05]">
+                    <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-hover-strong">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-[#3b6cf6] to-[#8fb0ff]"
                         style={{ width: `${width}%` }}

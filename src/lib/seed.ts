@@ -68,6 +68,8 @@ export function createSeedDatabase(): Database {
 
   const accounts: Account[] = fixed.map((item, index) => {
     const createdAt = new Date(now - (640 - index * 37) * 86400000).toISOString();
+    const suspendedAt =
+      item.status === "suspended" ? new Date(now - (index + 1) * 7200000).toISOString() : undefined;
     return {
       id: `acc_${String(index + 1).padStart(4, "0")}`,
       username: item.username,
@@ -77,8 +79,10 @@ export function createSeedDatabase(): Database {
       updatedAt: createdAt,
       lastActiveAt:
         item.status === "active" ? new Date(now - (index + 2) * 60000).toISOString() : undefined,
-      suspendedAt:
-        item.status === "suspended" ? new Date(now - (index + 1) * 7200000).toISOString() : undefined,
+      suspendedAt,
+      suspendedUntil: suspendedAt
+        ? new Date(new Date(suspendedAt).getTime() + (index + 4) * 86400000).toISOString()
+        : undefined,
     };
   });
 
@@ -89,6 +93,10 @@ export function createSeedDatabase(): Database {
     const username = `${theme}_${String(i + 1).padStart(4, "0")}`;
     const status = statuses[i];
     const createdAt = new Date(now - Math.floor(rand() * 700 + 5) * 86400000);
+    const suspendedAt =
+      status === "suspended"
+        ? new Date(now - Math.floor(rand() * 20 + 1) * 86400000)
+        : undefined;
     accounts.push({
       id: `acc_${String(accounts.length + 1).padStart(4, "0")}`,
       username,
@@ -100,20 +108,36 @@ export function createSeedDatabase(): Database {
         status === "active"
           ? new Date(now - Math.floor(rand() * 2880 + 5) * 60000).toISOString()
           : undefined,
-      suspendedAt:
-        status === "suspended"
-          ? new Date(now - Math.floor(rand() * 26 + 1) * 86400000).toISOString()
-          : undefined,
+      suspendedAt: suspendedAt?.toISOString(),
+      suspendedUntil: suspendedAt
+        ? new Date(suspendedAt.getTime() + Math.floor(rand() * 12 + 3) * 86400000).toISOString()
+        : undefined,
     });
   }
 
   const activeAccounts = accounts.filter((account) => account.status === "active");
   const suspendedAccounts = accounts.filter((account) => account.status === "suspended");
 
+  // Sebagian besar suspend masih berjalan; hanya beberapa yang sudah jatuh tempo.
+  suspendedAccounts.forEach((account) => {
+    if (account.suspendedUntil && new Date(account.suspendedUntil).getTime() <= now) {
+      account.suspendedUntil = new Date(
+        now + (2 + Math.floor(rand() * 10)) * 86400000,
+      ).toISOString();
+    }
+  });
+
+  // Empat akun lama dibuat sudah melewati masa suspend agar muncul notifikasi pemulihan.
+  suspendedAccounts.slice(4, 8).forEach((account, index) => {
+    account.suspendedAt = new Date(now - (18 + index * 3) * 86400000).toISOString();
+    account.suspendedUntil = new Date(now - (2 + index) * 86400000).toISOString();
+  });
+
   // Enam suspend terbaru di Redfingers Server 1 untuk audit trail dashboard.
   const redfingersSuspended = suspendedAccounts.slice(-6);
   redfingersSuspended.forEach((account, index) => {
     account.suspendedAt = new Date(now - (index * 3 + 2) * 60000).toISOString();
+    account.suspendedUntil = new Date(now + (index + 2) * 3 * 86400000).toISOString();
   });
 
   const groups: Group[] = [
