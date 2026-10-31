@@ -21,7 +21,9 @@ const DATA_FILE = path.join(DATA_DIR, "blox.json");
 const globalStore = globalThis as unknown as { __bloxDb?: Database };
 
 function databaseUrl() {
-  const url = process.env.DATABASE_URL?.trim();
+  // BLOX_DATABASE_URL is our app-specific secret; DATABASE_URL may be owned
+  // by the Neon Vercel integration and therefore not editable as a Secret.
+  const url = (process.env.BLOX_DATABASE_URL ?? process.env.DATABASE_URL)?.trim();
   if (!url) return null;
   if (!/^postgres(?:ql)?:\/\//i.test(url)) {
     throw new Error("DATABASE_URL must be a PostgreSQL connection string.");
