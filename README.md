@@ -9,15 +9,7 @@ npm install
 npm run dev
 ```
 
-Buka http://localhost:3000. Data demo (1.204 akun, 3 grup, 144 sesi) dibuat otomatis di `data/blox.json` saat API pertama kali dipanggil.
-
-### Akun demo
-
-| Email | Username | Password |
-| --- | --- | --- |
-| `admin@blox.local` | `admin` | `BloxAdmin123!` |
-
-Ganti kredensial ini (atau hapus user demo) sebelum dipakai di lingkungan nyata.
+Buka http://localhost:3000. Aplikasi mulai dengan data kosong; buat akun melalui halaman registrasi.
 
 ## Autentikasi
 
@@ -51,13 +43,13 @@ npm run build      # Production build
 - API tidak pernah mengembalikan ciphertext/password kecuali lewat endpoint reveal, yang selalu menulis audit trail.
 - Audit trail mencatat timestamp presisi untuk setiap suspend, reveal, dan perubahan alokasi.
 
-Untuk produksi, set `BLOX_SECRET` yang kuat. Penyimpanan dapat menggunakan Neon PostgreSQL melalui `BLOX_DATABASE_URL` (diutamakan) atau `DATABASE_URL`; tanpa keduanya aplikasi memakai `data/blox.json` lokal. Pada koneksi Neon pertama, jika tabel `blox_state` belum ada, aplikasi membuat tabel dan mengimpor data dari file JSON lokal (bila tersedia), atau membuat seed demo.
+Untuk produksi, set `BLOX_SECRET` yang kuat. Penyimpanan dapat menggunakan Neon PostgreSQL melalui `BLOX_DATABASE_URL` (diutamakan) atau `DATABASE_URL`; tanpa keduanya aplikasi memakai `data/blox.json` lokal. Instalasi baru dimulai kosong tanpa seed/demo.
 
 ### Neon PostgreSQL
 
 1. Buat project/database di [Neon Console](https://console.neon.tech/) dan salin **pooled connection string** dari menu Connect.
 2. Set pooled connection string sebagai `BLOX_DATABASE_URL` di `.env.local` atau sebagai environment secret di platform hosting (misalnya Vercel). Variable app-specific ini diutamakan atas `DATABASE_URL` yang dikelola integrasi. Jangan commit connection string atau membagikannya di chat.
-3. Jalankan `npm run dev`. Aplikasi otomatis membuat tabel `blox_state` dan memindahkan snapshot `data/blox.json` ke Neon saat koneksi pertama. Data Neon yang sudah ada tidak ditimpa oleh file lokal.
+3. Jalankan `npm run dev`. Aplikasi otomatis membuat tabel `blox_state` dan menggunakan state kosong saat koneksi pertama. Data Neon yang sudah ada tidak ditimpa.
 4. Cadangkan/ekspor data lokal sebelum beralih. Untuk kembali ke file lokal, hapus kedua variable database tersebut.
 
 Koneksi memakai driver resmi Neon di server (bukan browser). Batasi akses ke connection string, gunakan pooled URL dan environment terpisah untuk dev/production. Saat ini aplikasi menyimpan satu snapshot JSONB; ini memudahkan migrasi tanpa perubahan perilaku, tetapi untuk banyak penulis bersamaan sebaiknya dimigrasikan ke tabel relasional/transaksi.

@@ -1,4 +1,4 @@
-import { randomBytes, scrypt, scryptSync, timingSafeEqual } from "node:crypto";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 
 const scryptAsync = promisify(scrypt);
@@ -7,12 +7,6 @@ const PREFIX = "scrypt";
 
 function encode(salt: string, hash: Buffer) {
   return `${PREFIX}:${salt}:${hash.toString("hex")}`;
-}
-
-/** Dipakai untuk seed/migrasi yang berjalan sinkron. */
-export function hashPasswordSync(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  return encode(salt, scryptSync(password, salt, KEY_LENGTH));
 }
 
 export async function hashPassword(password: string) {

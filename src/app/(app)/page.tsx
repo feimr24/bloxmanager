@@ -115,9 +115,10 @@ export default function DashboardPage() {
   }
 
   const { stats, trend } = data;
-  const activeSpark = trend.slice(-7).map((point) => point.active);
-  const suspendSpark = trend.slice(-7).map((point) => point.suspended);
-  const totalSpark = trend
+  const chartTrend = trend.length > 0 ? trend : [{ date: new Date().toISOString().slice(0, 10), active: 0, suspended: 0 }];
+  const activeSpark = chartTrend.slice(-7).map((point) => point.active);
+  const suspendSpark = chartTrend.slice(-7).map((point) => point.suspended);
+  const totalSpark = chartTrend
     .slice(-7)
     .map((point) => point.active + point.suspended + stats.available);
 
@@ -190,7 +191,7 @@ export default function DashboardPage() {
 
       <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-12">
         <div className="xl:col-span-8">
-          <TrendChart trend={trend} />
+              <TrendChart trend={chartTrend} />
         </div>
         <div className="xl:col-span-4">
           <DeviceDonut data={data.deviceBreakdown} />

@@ -22,7 +22,6 @@ export default async function LoginPage({
     <LoginForm
       reset={false}
       registered={flag(params.registered)}
-      showDemo={process.env.NODE_ENV !== "production"}
     />
   );
 }

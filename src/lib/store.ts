@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { neon } from "@neondatabase/serverless";
-import { createDemoUser } from "./demo-user";
 import { createSeedDatabase } from "./seed";
 import type {
   Account,
@@ -83,14 +82,11 @@ export async function savePersistentDb(db: Database): Promise<void> {
   globalStore.__bloxDb = db;
 }
 
-/**
- * Database lama (sebelum fitur autentikasi) belum punya koleksi user/token.
- * Tambahkan tanpa menghapus data akun yang sudah ada.
- */
+/** Add missing collections without replacing an existing production database. */
 function ensureAuthCollections(db: Database) {
   let changed = false;
   if (!Array.isArray(db.users)) {
-    db.users = [createDemoUser()];
+    db.users = [];
     changed = true;
   }
   if (!Array.isArray(db.authSessions)) {
@@ -289,7 +285,7 @@ export function groupRows(db: Database): GroupRow[] {
 export function buildOverview(db: Database): OverviewResponse {
   const counts = accountCounts(db);
   const trend = db.trend;
-  const last = trend[trend.length - 1];
+  const last = trend.at(-1);
   const prevWeek = trend[Math.max(0, trend.length - 8)];
   const today = new Date().toISOString().slice(0, 10);
   const running = db.sessions.filter((session) => session.status === "running");
@@ -362,8 +358,8 @@ export function buildOverview(db: Database): OverviewResponse {
       active: counts.active,
       available: counts.available,
       suspended: counts.suspended,
-      activeDelta: last.active - prevWeek.active,
-      suspendedDelta: last.suspended - prevWeek.suspended,
+      activeDelta: (last?.active ?? 0) - (prevWeek?.active ?? 0),
+      suspendedDelta: (last?.suspended ?? 0) - (prevWeek?.suspended ?? 0),
       runningSessions: running.length,
       suspendedToday,
     },

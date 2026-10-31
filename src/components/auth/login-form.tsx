@@ -3,21 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AtSign, LogIn, ShieldCheck } from "lucide-react";
+import { AtSign, LogIn } from "lucide-react";
 import { AuthAlert, AuthCard } from "./auth-card";
 import { PasswordInput } from "./password-input";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
-import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/demo-credentials";
 
 export function LoginForm({
   reset,
   registered,
-  showDemo,
 }: {
   reset: boolean;
   registered: boolean;
-  showDemo: boolean;
 }) {
   const router = useRouter();
   const [identifier, setIdentifier] = useState("");
@@ -117,27 +114,6 @@ export function LoginForm({
         </Button>
       </form>
 
-      {showDemo && (
-        <div className="mt-5 rounded-xl border border-line bg-hover px-3.5 py-3">
-          <p className="flex items-center gap-1.5 text-[11px] font-medium text-body">
-            <ShieldCheck className="size-3.5 text-success" /> Akun demo
-          </p>
-          <p className="mt-1 text-[11px] leading-relaxed text-faint">
-            {DEMO_EMAIL} · {DEMO_PASSWORD}
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setIdentifier(DEMO_EMAIL);
-              setPassword(DEMO_PASSWORD);
-              setError(null);
-            }}
-            className="mt-2 text-[11px] font-medium text-accent transition hover:text-accent/80"
-          >
-            Isi otomatis
-          </button>
-        </div>
-      )}
     </AuthCard>
   );
 }
