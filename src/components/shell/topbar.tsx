@@ -24,6 +24,7 @@ const TITLES: Record<string, string> = {
   "/accounts": "Master Account",
   "/activity": "Aktivitas",
   "/groups": "Group",
+  "/settings": "Pengaturan",
 };
 
 interface AlertItem {

@@ -147,14 +147,31 @@ export function Sidebar({
                 soon
               </span>
             </button>
-            <button
-              type="button"
-              disabled
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] text-faint opacity-60"
+            <Link
+              href="/settings"
+              onClick={onClose}
+              aria-current={pathname.startsWith("/settings") ? "page" : undefined}
+              className={cn(
+                "group relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition",
+                pathname.startsWith("/settings")
+                  ? "bg-gradient-to-r from-brand/15 to-transparent text-strong"
+                  : "text-muted hover:bg-hover hover:text-strong",
+              )}
             >
-              <Settings2 className="size-[17px]" strokeWidth={1.9} />
+              {pathname.startsWith("/settings") && (
+                <span className="absolute inset-y-1.5 left-0 w-[2.5px] rounded-full bg-brand" />
+              )}
+              <Settings2
+                className={cn(
+                  "size-[17px] transition",
+                  pathname.startsWith("/settings")
+                    ? "text-accent"
+                    : "text-faint group-hover:text-strong",
+                )}
+                strokeWidth={1.9}
+              />
               Pengaturan
-            </button>
+            </Link>
           </div>
         </nav>
 

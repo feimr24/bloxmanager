@@ -53,6 +53,7 @@ npm run build      # Production build
 - **Master Account** — CRUD, pencarian username, filter status, sorting, paginasi server-side, password tersensor dengan reveal tercatat audit, bulk pilih & pindah grup.
 - **Aktivitas** — riwayat sesi, mulai/akhiri sesi dengan tipe perangkat (PC, Handphone, Redfingers), durasi live, proteksi multiple login (409).
 - **Group** — grup per environment, multi-select bulk add/remove, drag-and-drop akun ke kartu grup, edit/hapus grup.
+- **Pengaturan** — ubah username, ganti password (dengan verifikasi password lama), daftar sesi aktif, cabut sesi per perangkat, dan keluar dari semua perangkat.
 
 ## Keamanan & data
 

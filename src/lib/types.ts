@@ -83,6 +83,8 @@ export interface AuthSession {
   tokenHash: string;
   createdAt: string;
   expiresAt: string;
+  userAgent?: string;
+  ip?: string;
 }
 
 export interface Database {

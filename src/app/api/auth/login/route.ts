@@ -53,7 +53,10 @@ export async function POST(request: NextRequest) {
   resetRateLimit(limitKey);
   user.lastLoginAt = new Date().toISOString();
   saveDb(db);
-  await createSession(user.id);
+  await createSession(user.id, {
+    userAgent: request.headers.get("user-agent") ?? undefined,
+    ip: clientIp(request),
+  });
 
   return ok({
     ok: true,

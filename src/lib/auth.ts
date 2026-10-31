@@ -27,7 +27,10 @@ export function appBaseUrl(origin?: string) {
   return origin?.replace(/\/+$/, "") ?? "http://localhost:3000";
 }
 
-export async function createSession(userId: string) {
+export async function createSession(
+  userId: string,
+  meta?: { userAgent?: string; ip?: string },
+) {
   const db = loadDb();
   const now = Date.now();
 
@@ -44,6 +47,8 @@ export async function createSession(userId: string) {
     tokenHash: hashToken(raw),
     createdAt: new Date(now).toISOString(),
     expiresAt: expiresAt.toISOString(),
+    userAgent: meta?.userAgent,
+    ip: meta?.ip,
   };
   db.authSessions.push(session);
   saveDb(db);
@@ -73,6 +78,26 @@ export async function getCurrentUser(): Promise<User | null> {
   return db.users.find((user) => user.id === session.userId) ?? null;
 }
 
+export async function getCurrentSession(): Promise<AuthSession | null> {
+  const store = await cookies();
+  const raw = store.get(SESSION_COOKIE)?.value;
+  if (!raw) return null;
+
+  const tokenHash = hashToken(raw);
+  const session = loadDb().authSessions.find((item) => item.tokenHash === tokenHash);
+  if (!session || new Date(session.expiresAt).getTime() <= Date.now()) return null;
+  return session;
+}
+
+export function listUserSessions(userId: string) {
+  return loadDb()
+    .authSessions.filter(
+      (session) =>
+        session.userId === userId && new Date(session.expiresAt).getTime() > Date.now(),
+    )
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
 /** Untuk server component halaman yang wajib login. */
 export async function requireUser() {
   const user = await getCurrentUser();
@@ -89,6 +114,11 @@ export async function destroyCurrentSession() {
     db.authSessions = db.authSessions.filter((item) => item.tokenHash !== tokenHash);
     saveDb(db);
   }
+  store.delete(SESSION_COOKIE);
+}
+
+export async function clearSessionCookie() {
+  const store = await cookies();
   store.delete(SESSION_COOKIE);
 }
 

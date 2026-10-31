@@ -139,12 +139,14 @@ body {
   background: var(--scroll-thumb-hover);
 }
 
-input,
-select,
-textarea,
-button {
-  font: inherit;
-  color: inherit;
+@layer base {
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
 }
 
 button {
