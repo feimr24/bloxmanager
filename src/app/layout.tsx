@@ -41,7 +41,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
       </head>
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }
