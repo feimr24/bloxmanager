@@ -25,6 +25,7 @@ export async function PATCH(
   }
 
   const now = new Date().toISOString();
+  let removedFromGroups: string[] = [];
 
   if (typeof body.username === "string") {
     const username = body.username.trim();
@@ -52,11 +53,23 @@ export async function PATCH(
       if (status === "suspended") {
         account.suspendedAt = now;
         account.suspendedUntil = new Date(Date.now() + suspendDays * 86400000).toISOString();
+
+        // Akun tersuspend otomatis keluar dari semua grup.
+        const affected = db.groups.filter((group) => group.memberIds.includes(account.id));
+        removedFromGroups = affected.map((group) => group.name);
+        affected.forEach((group) => {
+          group.memberIds = group.memberIds.filter((memberId) => memberId !== account.id);
+        });
+
         db.audit.unshift({
           id: `aud_${Date.now().toString(36)}`,
           accountId: account.id,
           type: "suspend",
-          message: `Status akun berubah menjadi tersuspend (${suspendDays} hari)`,
+          message:
+            `Status akun berubah menjadi tersuspend (${suspendDays} hari)` +
+            (removedFromGroups.length > 0
+              ? ` dan dikeluarkan dari grup ${removedFromGroups.join(", ")}`
+              : ""),
           at: now,
         });
       } else {
@@ -77,7 +90,10 @@ export async function PATCH(
 
   account.updatedAt = now;
   saveDb(db);
-  return ok({ account: { ...account, passwordEnc: undefined } });
+  return ok({
+    account: { ...account, passwordEnc: undefined },
+    removedFromGroups,
+  });
 }
 
 export async function DELETE(

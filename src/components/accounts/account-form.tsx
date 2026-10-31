@@ -101,7 +101,16 @@ export function AccountFormModal({
         setError(data.error ?? "Gagal menyimpan akun");
         return;
       }
-      onSaved(editing ? "Perubahan akun disimpan." : "Akun baru berhasil ditambahkan.");
+      const removed = Array.isArray(data.removedFromGroups)
+        ? (data.removedFromGroups as string[])
+        : [];
+      onSaved(
+        editing
+          ? removed.length > 0
+            ? `Perubahan disimpan. Akun dikeluarkan dari grup ${removed.join(", ")}.`
+            : "Perubahan akun disimpan."
+          : "Akun baru berhasil ditambahkan.",
+      );
     } catch {
       setError("Tidak dapat menghubungi server");
     } finally {
@@ -296,8 +305,8 @@ export function AccountFormModal({
         )}
 
         <p className="rounded-lg border border-line bg-hover px-3 py-2 text-[10.5px] leading-relaxed text-faint">
-          Perubahan status menjadi tersuspend akan mencatat timestamp presisi dan tanggal pemulihan
-          otomatis di audit trail.
+          Perubahan status menjadi tersuspend akan mencatat timestamp presisi, tanggal pemulihan
+          otomatis, dan mengeluarkan akun dari semua grup.
         </p>
       </form>
     </Modal>
