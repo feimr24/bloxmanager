@@ -38,7 +38,10 @@ export async function POST(request: NextRequest) {
   ].filter(Boolean);
   if (errors.length > 0) return fail(errors[0] as string);
   if (process.env.NODE_ENV === "production" && !isMailConfigured()) {
-    return fail("Email belum dikonfigurasi. Akun belum dibuat; silakan hubungi administrator.", 503);
+    return fail(
+      "Email belum aktif di server (RESEND_API_KEY dan MAIL_FROM). Akun belum dibuat; administrator perlu melengkapi konfigurasi Resend.",
+      503,
+    );
   }
 
   const db = await loadPersistentDb();

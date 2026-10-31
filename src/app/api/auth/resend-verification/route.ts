@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   const emailError = validateEmail(email);
   if (emailError) return fail(emailError);
   if (process.env.NODE_ENV === "production" && !isMailConfigured()) {
-    return fail("Email belum dikonfigurasi. Silakan hubungi administrator.", 503);
+    return fail("Email belum aktif di server. Administrator perlu melengkapi konfigurasi Resend.", 503);
   }
 
   const generic = {
