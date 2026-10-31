@@ -17,7 +17,7 @@ export function RegisterForm() {
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [result, setResult] = useState<{ email: string; devLink?: string } | null>(null);
+  const [result, setResult] = useState<{ email: string; emailSent: boolean; devLink?: string } | null>(null);
   const [resent, setResent] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
 
@@ -50,7 +50,11 @@ export function RegisterForm() {
         setError(data.error ?? "Pendaftaran gagal. Coba lagi.");
         return;
       }
-      setResult({ email: values.email.trim().toLowerCase(), devLink: data.devLink });
+      setResult({
+        email: values.email.trim().toLowerCase(),
+        emailSent: Boolean(data.emailSent),
+        devLink: data.devLink,
+      });
     } catch {
       setError("Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.");
     } finally {
@@ -74,7 +78,7 @@ export function RegisterForm() {
         return;
       }
       setResent(data.message ?? "Email verifikasi dikirim ulang.");
-      if (data.devLink) setResult({ ...result, devLink: data.devLink });
+      if (data.devLink) setResult({ ...result, emailSent: false, devLink: data.devLink });
     } catch {
       setError("Tidak dapat menghubungi server.");
     } finally {
@@ -97,12 +101,15 @@ export function RegisterForm() {
         }
       >
         <div className="space-y-4">
-          <AuthAlert tone="success">
+          <AuthAlert tone={result.emailSent ? "success" : "info"}>
             <span className="flex items-center gap-1.5 font-medium">
-              <MailCheck className="size-3.5" /> Email verifikasi terkirim
+              <MailCheck className="size-3.5" />
+              {result.emailSent ? "Email verifikasi terkirim" : "Permintaan pendaftaran tersimpan sementara"}
             </span>
             <span className="mt-1 block">
-              Tautan dikirim ke <strong>{result.email}</strong>. Berlaku 24 jam.
+              {result.emailSent
+                ? <>Tautan dikirim ke <strong>{result.email}</strong>. Akun dibuat setelah verifikasi; tautan berlaku 24 jam.</>
+                : <>Email belum dikirim. Akun belum dibuat; verifikasi hanya tersedia melalui tautan mode pengembangan.</>}
             </span>
           </AuthAlert>
 
@@ -113,8 +120,8 @@ export function RegisterForm() {
             <div className="rounded-xl border border-warning/30 bg-warning/[0.07] px-3.5 py-3">
               <p className="text-[11px] font-medium text-warning">Mode pengembangan</p>
               <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                RESEND_API_KEY belum diisi, jadi email tidak benar-benar dikirim. Buka tautan ini
-                untuk memverifikasi:
+                RESEND_API_KEY dan MAIL_FROM belum tersedia, jadi email tidak benar-benar dikirim.
+                Buka tautan ini untuk verifikasi lokal:
               </p>
               <a
                 href={result.devLink}

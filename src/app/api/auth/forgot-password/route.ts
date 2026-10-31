@@ -3,7 +3,7 @@ import { fail } from "@/lib/api";
 import { appBaseUrl, RESET_TTL_MS, createAuthToken, invalidateAuthTokens } from "@/lib/auth";
 import { normalizeEmail, validateEmail } from "@/lib/auth-validation";
 import { resetPasswordEmail } from "@/lib/email-templates";
-import { sendMail } from "@/lib/mailer";
+import { isMailConfigured, sendMail } from "@/lib/mailer";
 import { clientIp, hitRateLimit } from "@/lib/rate-limit";
 import { loadPersistentDb } from "@/lib/store";
 
@@ -25,6 +25,9 @@ export async function POST(request: NextRequest) {
   const email = normalizeEmail(body.email);
   const emailError = validateEmail(email);
   if (emailError) return fail(emailError);
+  if (process.env.NODE_ENV === "production" && !isMailConfigured()) {
+    return fail("Email belum dikonfigurasi. Silakan hubungi administrator.", 503);
+  }
 
   const db = await loadPersistentDb();
   const user = db.users.find((item) => item.email === email);
@@ -35,7 +38,7 @@ export async function POST(request: NextRequest) {
     message: "Bila email terdaftar, tautan reset password sudah dikirim.",
   };
 
-  if (!user) return NextResponse.json(generic);
+  if (!user?.emailVerified) return NextResponse.json(generic);
 
   await invalidateAuthTokens(user.id, "reset");
   const { raw } = await createAuthToken(user.id, "reset", RESET_TTL_MS);

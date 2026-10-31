@@ -5,20 +5,24 @@ interface MailMessage {
   text: string;
 }
 
+export function isMailConfigured() {
+  return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.MAIL_FROM?.trim());
+}
+
 /**
  * Kirim email lewat Resend (https://resend.com).
- * Bila RESEND_API_KEY belum diisi, email tidak dikirim dan link dicetak ke
- * console server supaya alur verifikasi tetap bisa diuji secara lokal.
+ * Bila RESEND_API_KEY belum diisi, email tidak dikirim. Link tidak pernah
+ * ditulis ke log karena mengandung token verifikasi/reset.
  */
 export async function sendMail(message: MailMessage): Promise<{ delivered: boolean; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
+  const from = process.env.MAIL_FROM?.trim();
 
-  if (!apiKey) {
-    console.info(
-      `\n[blox-mail:dev] RESEND_API_KEY belum diisi — email ke ${message.to} tidak dikirim.`,
-      `\n[blox-mail:dev] ${message.subject}\n${message.text}\n`,
-    );
-    return { delivered: false, error: "RESEND_API_KEY belum dikonfigurasi" };
+  if (!apiKey || !from) {
+    return {
+      delivered: false,
+      error: !apiKey ? "RESEND_API_KEY belum dikonfigurasi" : "MAIL_FROM belum dikonfigurasi",
+    };
   }
 
   try {
@@ -29,7 +33,7 @@ export async function sendMail(message: MailMessage): Promise<{ delivered: boole
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.MAIL_FROM?.trim() || "BLOX MANAGER <onboarding@resend.dev>",
+        from,
         to: [message.to],
         subject: message.subject,
         html: message.html,
@@ -38,8 +42,7 @@ export async function sendMail(message: MailMessage): Promise<{ delivered: boole
     });
 
     if (!response.ok) {
-      const detail = await response.text();
-      console.error("[blox-mail] Resend menolak permintaan:", response.status, detail);
+      console.error("[blox-mail] Resend menolak permintaan:", response.status);
       return { delivered: false, error: "Gagal mengirim email" };
     }
 

@@ -60,6 +60,15 @@ export interface User {
   lastLoginAt?: string;
 }
 
+export interface PendingRegistration {
+  id: string;
+  email: string;
+  username: string;
+  passwordHash: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 export type AuthTokenType = "verify" | "reset";
 
 export interface AuthUserSummary {
@@ -97,6 +106,7 @@ export interface Database {
   users: User[];
   authTokens: AuthToken[];
   authSessions: AuthSession[];
+  pendingRegistrations: PendingRegistration[];
 }
 
 export interface AccountRow {

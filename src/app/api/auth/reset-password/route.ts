@@ -31,10 +31,9 @@ export async function POST(request: NextRequest) {
 
   const db = await loadPersistentDb();
   const user = db.users.find((item) => item.id === record.userId);
-  if (!user) return fail("Akun tidak ditemukan", 404);
+  if (!user?.emailVerified) return fail("Akun terverifikasi tidak ditemukan", 404);
 
   user.passwordHash = await hashPassword(password);
-  user.emailVerified = true;
   user.updatedAt = new Date().toISOString();
   await savePersistentDb(db);
 

@@ -23,6 +23,7 @@ Ganti kredensial ini (atau hapus user demo) sebelum dipakai di lingkungan nyata.
 
 - **Login** di `/login` memakai email **atau** username + password. Sesi disimpan sebagai cookie HttpOnly 30 hari.
 - **Register** di `/register` membutuhkan email, username, dan password (min. 8 karakter, huruf + angka), lalu mengirim tautan verifikasi 24 jam.
+- Pendaftaran baru hanya disimpan sebagai **pending**; record user baru dibuat setelah tautan email valid. Jika email gagal dikirim di production, pending registration dibatalkan.
 - **Lupa password** di `/forgot-password` mengirim tautan reset sekali pakai (60 menit); semua sesi lama dicabut setelah password diganti.
 - Password user di-hash dengan **scrypt** (`src/lib/password.ts`), bukan dienkripsi, dan tidak pernah dikembalikan API.
 - Seluruh halaman dashboard dan endpoint data dilindungi sesi; tanpa login akan diarahkan ke `/login` atau menerima `401`.
@@ -37,7 +38,7 @@ MAIL_FROM="BLOX MANAGER <noreply@domainkamu.com>"
 APP_URL=http://localhost:3000
 ```
 
-`MAIL_FROM` harus memakai domain yang sudah diverifikasi di Resend. Selama `RESEND_API_KEY` kosong, email tidak dikirim; tautan verifikasi/reset ditampilkan di UI (mode pengembangan) dan dicetak ke console server agar alur tetap bisa diuji.
+`MAIL_FROM` harus memakai domain yang sudah diverifikasi di Resend. Tambahkan `RESEND_API_KEY` sebagai **Secret** dan `MAIL_FROM` sebagai environment variable pada Vercel untuk Production, Preview, dan Development. Jika konfigurasi email tidak ada di production, registrasi dan permintaan reset ditolak dengan pesan konfigurasi; akun tidak dibuat. Di development, tautan lokal ditampilkan di UI. Token dan URL verifikasi tidak ditulis ke server log.
 
 Perintah lain:
 

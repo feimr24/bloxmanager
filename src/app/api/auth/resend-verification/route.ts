@@ -8,7 +8,7 @@ import {
 } from "@/lib/auth";
 import { normalizeEmail, validateEmail } from "@/lib/auth-validation";
 import { verificationEmail } from "@/lib/email-templates";
-import { sendMail } from "@/lib/mailer";
+import { isMailConfigured, sendMail } from "@/lib/mailer";
 import { clientIp, hitRateLimit } from "@/lib/rate-limit";
 import { loadPersistentDb } from "@/lib/store";
 
@@ -28,6 +28,9 @@ export async function POST(request: NextRequest) {
   const email = normalizeEmail(body.email);
   const emailError = validateEmail(email);
   if (emailError) return fail(emailError);
+  if (process.env.NODE_ENV === "production" && !isMailConfigured()) {
+    return fail("Email belum dikonfigurasi. Silakan hubungi administrator.", 503);
+  }
 
   const generic = {
     ok: true,
@@ -36,16 +39,30 @@ export async function POST(request: NextRequest) {
 
   const db = await loadPersistentDb();
   const user = db.users.find((item) => item.email === email);
-  if (!user || user.emailVerified) return NextResponse.json(generic);
+  const pending = db.pendingRegistrations.find(
+    (item) => item.email === email && new Date(item.expiresAt).getTime() > Date.now(),
+  );
+  if ((!user || user.emailVerified) && !pending) return NextResponse.json(generic);
 
-  await invalidateAuthTokens(user.id, "verify");
-  const { raw } = await createAuthToken(user.id, "verify", VERIFY_TTL_MS);
+  const userId = pending?.id ?? user?.id;
+  const username = pending?.username ?? user?.username;
+  if (!userId || !username) return NextResponse.json(generic);
+  await invalidateAuthTokens(userId, "verify");
+  const { raw } = await createAuthToken(userId, "verify", VERIFY_TTL_MS);
   const link = `${appBaseUrl(request.nextUrl.origin)}/verify-email?token=${encodeURIComponent(raw)}`;
-  const mail = verificationEmail({ username: user.username, link });
-  const result = await sendMail({ to: user.email, ...mail });
+  const mail = verificationEmail({ username, link });
+  const result = await sendMail({ to: email, ...mail });
+
+  if (!result.delivered && process.env.NODE_ENV === "production") {
+    return fail("Email verifikasi belum dapat dikirim. Silakan coba lagi nanti atau hubungi administrator.", 502);
+  }
 
   return NextResponse.json({
     ...generic,
+    message: result.delivered
+      ? generic.message
+      : "Mode pengembangan: email tidak terkirim, gunakan tautan verifikasi lokal.",
+    emailSent: result.delivered,
     devLink:
       !result.delivered && process.env.NODE_ENV !== "production" ? link : undefined,
   });

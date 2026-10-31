@@ -35,8 +35,43 @@ export async function POST(request: NextRequest) {
   }
 
   const db = await loadPersistentDb();
+  const pending = db.pendingRegistrations.find((item) => item.id === record.userId);
+  if (pending) {
+    if (new Date(pending.expiresAt).getTime() <= Date.now()) {
+      db.pendingRegistrations = db.pendingRegistrations.filter((item) => item.id !== pending.id);
+      await savePersistentDb(db);
+      return fail("Tautan verifikasi sudah kedaluwarsa. Silakan daftar ulang.", 400);
+    }
+
+    const conflict = db.users.some(
+      (item) =>
+        item.email === pending.email ||
+        item.username.toLowerCase() === pending.username.toLowerCase(),
+    );
+    if (conflict) {
+      db.pendingRegistrations = db.pendingRegistrations.filter((item) => item.id !== pending.id);
+      await savePersistentDb(db);
+      return fail("Email atau username sudah digunakan. Silakan hubungi administrator.", 409);
+    }
+
+    const now = new Date().toISOString();
+    db.users.push({
+      id: pending.id,
+      email: pending.email,
+      username: pending.username,
+      passwordHash: pending.passwordHash,
+      emailVerified: true,
+      createdAt: pending.createdAt,
+      updatedAt: now,
+    });
+    db.pendingRegistrations = db.pendingRegistrations.filter((item) => item.id !== pending.id);
+    await savePersistentDb(db);
+    return SUCCESS(pending.username, pending.email);
+  }
+
+  // Preserve verification links issued before registrations became pending.
   const user = db.users.find((item) => item.id === record.userId);
-  if (!user) return fail("Akun tidak ditemukan", 404);
+  if (!user) return fail("Permintaan pendaftaran tidak ditemukan atau sudah dibatalkan.", 404);
 
   if (!user.emailVerified) {
     user.emailVerified = true;

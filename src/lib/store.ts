@@ -45,7 +45,10 @@ export async function loadPersistentDb(): Promise<Database> {
   const rows = await sql`SELECT data FROM blox_state WHERE id = 'primary'`;
   if (rows.length) {
     const db = rows[0].data as Database;
-    ensureAuthCollections(db);
+    if (ensureAuthCollections(db)) {
+      await sql`UPDATE blox_state SET data = ${JSON.stringify(db)}::jsonb, updated_at = NOW()
+        WHERE id = 'primary'`;
+    }
     globalStore.__bloxDb = db;
     return db;
   }
@@ -96,6 +99,10 @@ function ensureAuthCollections(db: Database) {
   }
   if (!Array.isArray(db.authSessions)) {
     db.authSessions = [];
+    changed = true;
+  }
+  if (!Array.isArray(db.pendingRegistrations)) {
+    db.pendingRegistrations = [];
     changed = true;
   }
   if (db.version < 2) {
