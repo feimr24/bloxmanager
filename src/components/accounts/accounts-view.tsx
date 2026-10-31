@@ -22,7 +22,6 @@ import {
   formatCountdown,
   formatDate,
   formatNumber,
-  formatRelative,
   formatSuspendAge,
 } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
@@ -78,6 +77,17 @@ export function AccountsView() {
   const [groups, setGroups] = useState<GroupRow[]>([]);
   const [assignGroup, setAssignGroup] = useState("");
   const [assigning, setAssigning] = useState(false);
+
+  function formatAccountAge(createdAt: string) {
+    const start = new Date(createdAt);
+    const today = new Date();
+    start.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const days = Math.max(0, Math.floor((today.getTime() - start.getTime()) / 86400000));
+    if (days === 0) return "Hari ini";
+    if (days === 1) return "1 hari";
+    return `${formatNumber(days)} hari`;
+  }
 
   const refresh = useCallback(() => setRefreshKey((value) => value + 1), []);
   void tick;
@@ -377,6 +387,7 @@ export function AccountsView() {
                 <th className="px-3 py-2.5 font-medium">Username</th>
                 <th className="px-3 py-2.5 font-medium">Password</th>
                 <th className="px-3 py-2.5 font-medium">Status</th>
+                {!suspendedView && <th className="px-3 py-2.5 font-medium">Umur akun</th>}
                 {suspendedView && (
                   <>
                     <th className="px-3 py-2.5 font-medium">Lama suspend</th>
@@ -384,7 +395,6 @@ export function AccountsView() {
                   </>
                 )}
                 <th className="px-3 py-2.5 font-medium">Grup</th>
-                <th className="px-3 py-2.5 font-medium">Terakhir aktif</th>
                 <th className="px-4 py-2.5 text-right font-medium sm:px-5">Aksi</th>
               </tr>
             </thead>
@@ -392,7 +402,7 @@ export function AccountsView() {
               {loading && !data &&
                 Array.from({ length: 8 }).map((_, index) => (
                   <tr key={index} className="border-b border-line/50">
-                    <td colSpan={suspendedView ? 9 : 7} className="px-5 py-3">
+                    <td colSpan={suspendedView ? 8 : 7} className="px-5 py-3">
                       <Skeleton className="h-8 w-full" />
                     </td>
                   </tr>
@@ -459,6 +469,11 @@ export function AccountsView() {
                     <td className="px-3 py-2.5">
                       <StatusBadge status={account.status} />
                     </td>
+                    {!suspendedView && (
+                      <td className="px-3 py-2.5 text-[11.5px] text-body">
+                        {formatAccountAge(account.createdAt)}
+                      </td>
+                    )}
                     {suspendedView && (
                       <>
                         <td className="px-3 py-2.5">
@@ -504,18 +519,6 @@ export function AccountsView() {
                         </div>
                       ) : (
                         <span className="text-[10.5px] text-faint">Belum ada</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <p className="text-[11px] text-muted">
-                        {account.runningSession
-                          ? "Sedang bermain"
-                          : account.lastActiveAt
-                            ? formatRelative(account.lastActiveAt)
-                            : "—"}
-                      </p>
-                      {account.runningSession && (
-                        <p className="text-[9.5px] text-success">{account.runningSession.deviceName}</p>
                       )}
                     </td>
                     <td className="px-4 py-2.5 sm:px-5">

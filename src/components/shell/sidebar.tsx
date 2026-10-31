@@ -28,7 +28,7 @@ const NAV = [
   {
     label: "Operasional",
     items: [
-      { href: "/activity", label: "Aktivitas", icon: Activity, badge: "42" },
+      { href: "/activity", label: "Aktivitas", icon: Activity },
       { href: "/groups", label: "Group", icon: FolderKanban },
     ],
   },
@@ -119,11 +119,6 @@ export function Sidebar({
                           strokeWidth={1.9}
                         />
                         <span className="flex-1">{item.label}</span>
-                        {item.badge && (
-                          <span className="rounded-md bg-brand/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent">
-                            {item.badge}
-                          </span>
-                        )}
                       </Link>
                     </li>
                   );
