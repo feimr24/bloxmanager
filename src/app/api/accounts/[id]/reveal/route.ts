@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { fail, ok, requireApiAuth } from "@/lib/api";
 import { decryptPassword } from "@/lib/crypto";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 
 
 export async function POST(
@@ -12,7 +12,7 @@ export async function POST(
   if (denied) return denied;
 
   const { id } = await context.params;
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const account = db.accounts.find((item) => item.id === id);
   if (!account) return fail("Akun tidak ditemukan", 404);
 
@@ -24,7 +24,7 @@ export async function POST(
     message: `Password akun ${account.username} dibuka oleh administrator`,
     at: now,
   });
-  saveDb(db);
+  await savePersistentDb(db);
 
   return ok({ password: decryptPassword(account.passwordEnc), revealedAt: now });
 }

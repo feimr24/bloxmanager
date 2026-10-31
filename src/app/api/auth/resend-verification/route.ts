@@ -10,7 +10,7 @@ import { normalizeEmail, validateEmail } from "@/lib/auth-validation";
 import { verificationEmail } from "@/lib/email-templates";
 import { sendMail } from "@/lib/mailer";
 import { clientIp, hitRateLimit } from "@/lib/rate-limit";
-import { loadDb } from "@/lib/store";
+import { loadPersistentDb } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   const limit = hitRateLimit(`resend:${clientIp(request)}`, 5, 15 * 60 * 1000);
@@ -34,12 +34,12 @@ export async function POST(request: NextRequest) {
     message: "Bila email terdaftar dan belum diverifikasi, tautan baru sudah dikirim.",
   };
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const user = db.users.find((item) => item.email === email);
   if (!user || user.emailVerified) return NextResponse.json(generic);
 
-  invalidateAuthTokens(user.id, "verify");
-  const { raw } = createAuthToken(user.id, "verify", VERIFY_TTL_MS);
+  await invalidateAuthTokens(user.id, "verify");
+  const { raw } = await createAuthToken(user.id, "verify", VERIFY_TTL_MS);
   const link = `${appBaseUrl(request.nextUrl.origin)}/verify-email?token=${encodeURIComponent(raw)}`;
   const mail = verificationEmail({ username: user.username, link });
   const result = await sendMail({ to: user.email, ...mail });

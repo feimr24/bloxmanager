@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { fail, ok, requireApiAuth } from "@/lib/api";
 import { clearSessionCookie, getCurrentSession, getCurrentUser, listUserSessions } from "@/lib/auth";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   const denied = await requireApiAuth();
@@ -19,12 +19,12 @@ export async function POST(request: NextRequest) {
 
   const scope = String(body.scope ?? "");
   const sessionId = String(body.sessionId ?? "");
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const current = await getCurrentSession();
 
   if (scope === "all") {
     db.authSessions = db.authSessions.filter((session) => session.userId !== user.id);
-    saveDb(db);
+    await savePersistentDb(db);
     await clearSessionCookie();
     return ok({ ok: true, loggedOut: true, revoked: "all" });
   }
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     db.authSessions = db.authSessions.filter(
       (session) => session.userId !== user.id || session.id === current?.id,
     );
-    saveDb(db);
+    await savePersistentDb(db);
     return ok({ ok: true, revoked: before - db.authSessions.length });
   }
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (!target) return fail("Sesi tidak ditemukan", 404);
 
     db.authSessions = db.authSessions.filter((session) => session.id !== sessionId);
-    saveDb(db);
+    await savePersistentDb(db);
 
     const wasCurrent = target.id === current?.id;
     if (wasCurrent) await clearSessionCookie();
@@ -63,7 +63,7 @@ export async function GET() {
   if (!user) return fail("Sesi berakhir. Silakan masuk kembali.", 401);
 
   const current = await getCurrentSession();
-  const sessions = listUserSessions(user.id).map((session) => ({
+  const sessions = (await listUserSessions(user.id)).map((session) => ({
     id: session.id,
     createdAt: session.createdAt,
     expiresAt: session.expiresAt,

@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { loadDb, saveDb } from "./store";
+import { loadPersistentDb, savePersistentDb } from "./store";
 import type { AuthSession, AuthToken, AuthTokenType, User } from "./types";
 
 export const SESSION_COOKIE = "blox_session";
@@ -31,7 +31,7 @@ export async function createSession(
   userId: string,
   meta?: { userAgent?: string; ip?: string },
 ) {
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const now = Date.now();
 
   // Bersihkan sesi kedaluwarsa agar file database tidak membengkak.
@@ -51,7 +51,7 @@ export async function createSession(
     ip: meta?.ip,
   };
   db.authSessions.push(session);
-  saveDb(db);
+  await savePersistentDb(db);
 
   const store = await cookies();
   store.set(SESSION_COOKIE, raw, {
@@ -70,7 +70,7 @@ export async function getCurrentUser(): Promise<User | null> {
   const raw = store.get(SESSION_COOKIE)?.value;
   if (!raw) return null;
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const tokenHash = hashToken(raw);
   const session = db.authSessions.find((item) => item.tokenHash === tokenHash);
   if (!session || new Date(session.expiresAt).getTime() <= Date.now()) return null;
@@ -84,13 +84,13 @@ export async function getCurrentSession(): Promise<AuthSession | null> {
   if (!raw) return null;
 
   const tokenHash = hashToken(raw);
-  const session = loadDb().authSessions.find((item) => item.tokenHash === tokenHash);
+  const session = (await loadPersistentDb()).authSessions.find((item) => item.tokenHash === tokenHash);
   if (!session || new Date(session.expiresAt).getTime() <= Date.now()) return null;
   return session;
 }
 
-export function listUserSessions(userId: string) {
-  return loadDb()
+export async function listUserSessions(userId: string) {
+  return (await loadPersistentDb())
     .authSessions.filter(
       (session) =>
         session.userId === userId && new Date(session.expiresAt).getTime() > Date.now(),
@@ -109,10 +109,10 @@ export async function destroyCurrentSession() {
   const store = await cookies();
   const raw = store.get(SESSION_COOKIE)?.value;
   if (raw) {
-    const db = loadDb();
+    const db = await loadPersistentDb();
     const tokenHash = hashToken(raw);
     db.authSessions = db.authSessions.filter((item) => item.tokenHash !== tokenHash);
-    saveDb(db);
+    await savePersistentDb(db);
   }
   store.delete(SESSION_COOKIE);
 }
@@ -122,14 +122,14 @@ export async function clearSessionCookie() {
   store.delete(SESSION_COOKIE);
 }
 
-export function revokeUserSessions(userId: string) {
-  const db = loadDb();
+export async function revokeUserSessions(userId: string) {
+  const db = await loadPersistentDb();
   db.authSessions = db.authSessions.filter((session) => session.userId !== userId);
-  saveDb(db);
+  await savePersistentDb(db);
 }
 
-export function createAuthToken(userId: string, type: AuthTokenType, ttlMs: number) {
-  const db = loadDb();
+export async function createAuthToken(userId: string, type: AuthTokenType, ttlMs: number) {
+  const db = await loadPersistentDb();
   const now = Date.now();
   const raw = randomToken();
   const token: AuthToken = {
@@ -141,13 +141,13 @@ export function createAuthToken(userId: string, type: AuthTokenType, ttlMs: numb
     createdAt: new Date(now).toISOString(),
   };
   db.authTokens.push(token);
-  saveDb(db);
+  await savePersistentDb(db);
   return { raw, token };
 }
 
-export function consumeAuthToken(raw: string, type: AuthTokenType) {
+export async function consumeAuthToken(raw: string, type: AuthTokenType) {
   if (!raw) return null;
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const tokenHash = hashToken(raw);
   const token = db.authTokens.find(
     (item) => item.tokenHash === tokenHash && item.type === type,
@@ -156,24 +156,25 @@ export function consumeAuthToken(raw: string, type: AuthTokenType) {
   if (new Date(token.expiresAt).getTime() <= Date.now()) return null;
 
   token.usedAt = new Date().toISOString();
-  saveDb(db);
+  await savePersistentDb(db);
   return token;
 }
 
 /** Ambil token tanpa menandainya terpakai (untuk verifikasi idempoten). */
-export function peekAuthToken(raw: string, type: AuthTokenType) {
+export async function peekAuthToken(raw: string, type: AuthTokenType) {
   if (!raw) return null;
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const tokenHash = hashToken(raw);
   return (
     db.authTokens.find((item) => item.tokenHash === tokenHash && item.type === type) ?? null
   );
 }
 
-/** Hanya token verifikasi terbaru yang berlaku; token lama dihapus. */export function invalidateAuthTokens(userId: string, type: AuthTokenType) {
-  const db = loadDb();
+/** Hanya token verifikasi terbaru yang berlaku; token lama dihapus. */
+export async function invalidateAuthTokens(userId: string, type: AuthTokenType) {
+  const db = await loadPersistentDb();
   db.authTokens = db.authTokens.filter(
     (token) => !(token.userId === userId && token.type === type && !token.usedAt),
   );
-  saveDb(db);
+  await savePersistentDb(db);
 }

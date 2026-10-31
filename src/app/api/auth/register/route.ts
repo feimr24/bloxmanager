@@ -6,7 +6,7 @@ import { verificationEmail } from "@/lib/email-templates";
 import { sendMail } from "@/lib/mailer";
 import { hashPassword } from "@/lib/password";
 import { clientIp, hitRateLimit } from "@/lib/rate-limit";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 import type { User } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   ].filter(Boolean);
   if (errors.length > 0) return fail(errors[0] as string);
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   if (db.users.some((user) => user.email === email)) {
     return fail("Email sudah terdaftar. Silakan masuk atau reset password.", 409);
   }
@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
     updatedAt: now,
   };
   db.users.push(user);
-  saveDb(db);
+  await savePersistentDb(db);
 
-  const { raw } = createAuthToken(user.id, "verify", VERIFY_TTL_MS);
+  const { raw } = await createAuthToken(user.id, "verify", VERIFY_TTL_MS);
   const link = `${appBaseUrl(request.nextUrl.origin)}/verify-email?token=${encodeURIComponent(raw)}`;
   const mail = verificationEmail({ username, link });
   const result = await sendMail({ to: email, ...mail });

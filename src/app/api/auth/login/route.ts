@@ -3,7 +3,7 @@ import { fail, ok } from "@/lib/api";
 import { createSession } from "@/lib/auth";
 import { verifyPassword } from "@/lib/password";
 import { clientIp, hitRateLimit, resetRateLimit } from "@/lib/rate-limit";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   let body: Record<string, unknown>;
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const needle = identifier.toLowerCase();
   const user = db.users.find(
     (item) => item.email === needle || item.username.toLowerCase() === needle,
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
   resetRateLimit(limitKey);
   user.lastLoginAt = new Date().toISOString();
-  saveDb(db);
+  await savePersistentDb(db);
   await createSession(user.id, {
     userAgent: request.headers.get("user-agent") ?? undefined,
     ip: clientIp(request),

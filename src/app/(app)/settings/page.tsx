@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default async function SettingsPage() {
   const user = await requireUser();
   const current = await getCurrentSession();
-  const sessions = listUserSessions(user.id).map((session) => ({
+  const sessions = (await listUserSessions(user.id)).map((session) => ({
     id: session.id,
     createdAt: session.createdAt,
     expiresAt: session.expiresAt,

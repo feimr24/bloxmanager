@@ -4,7 +4,7 @@ import { consumeAuthToken, revokeUserSessions } from "@/lib/auth";
 import { validatePassword } from "@/lib/auth-validation";
 import { hashPassword } from "@/lib/password";
 import { clientIp, hitRateLimit } from "@/lib/rate-limit";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   const limit = hitRateLimit(`reset:${clientIp(request)}`, 10, 15 * 60 * 1000);
@@ -24,21 +24,21 @@ export async function POST(request: NextRequest) {
   const passwordError = validatePassword(password);
   if (passwordError) return fail(passwordError);
 
-  const record = consumeAuthToken(token, "reset");
+  const record = await consumeAuthToken(token, "reset");
   if (!record) {
     return fail("Tautan reset tidak valid atau sudah kedaluwarsa.", 400);
   }
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const user = db.users.find((item) => item.id === record.userId);
   if (!user) return fail("Akun tidak ditemukan", 404);
 
   user.passwordHash = await hashPassword(password);
   user.emailVerified = true;
   user.updatedAt = new Date().toISOString();
-  saveDb(db);
+  await savePersistentDb(db);
 
-  revokeUserSessions(user.id);
+  await revokeUserSessions(user.id);
 
   return ok({ ok: true, username: user.username });
 }

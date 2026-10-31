@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { fail, ok, requireApiAuth } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
 import { validateUsername } from "@/lib/auth-validation";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 
 export async function PATCH(request: NextRequest) {
   const denied = await requireApiAuth();
@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest) {
   const usernameError = validateUsername(username);
   if (usernameError) return fail(usernameError);
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const taken = db.users.some(
     (item) => item.id !== user.id && item.username.toLowerCase() === username.toLowerCase(),
   );
@@ -33,7 +33,7 @@ export async function PATCH(request: NextRequest) {
 
   record.username = username;
   record.updatedAt = new Date().toISOString();
-  saveDb(db);
+  await savePersistentDb(db);
 
   return ok({
     ok: true,

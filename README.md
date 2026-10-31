@@ -61,4 +61,13 @@ npm run build      # Production build
 - API tidak pernah mengembalikan ciphertext/password kecuali lewat endpoint reveal, yang selalu menulis audit trail.
 - Audit trail mencatat timestamp presisi untuk setiap suspend, reveal, dan perubahan alokasi.
 
-Untuk produksi, set `BLOX_SECRET` yang kuat dan ganti penyimpanan JSON dengan database (PostgreSQL/SQLite) — lapisan akses data terisolasi di `src/lib/store.ts`.
+Untuk produksi, set `BLOX_SECRET` yang kuat. Penyimpanan dapat menggunakan Neon PostgreSQL melalui `DATABASE_URL`; tanpa variabel ini aplikasi memakai `data/blox.json` lokal. Pada koneksi Neon pertama, jika tabel `blox_state` belum ada, aplikasi membuat tabel dan mengimpor data dari file JSON lokal (bila tersedia), atau membuat seed demo.
+
+### Neon PostgreSQL
+
+1. Buat project/database di [Neon Console](https://console.neon.tech/) dan salin **pooled connection string** dari menu Connect.
+2. Set `DATABASE_URL` di `.env.local` untuk lokal atau sebagai environment secret di platform hosting (misalnya Vercel). Jangan commit connection string atau membagikannya di chat.
+3. Jalankan `npm run dev`. Aplikasi otomatis membuat tabel `blox_state` dan memindahkan snapshot `data/blox.json` ke Neon saat koneksi pertama. Data Neon yang sudah ada tidak ditimpa oleh file lokal.
+4. Cadangkan/ekspor data lokal sebelum beralih. Untuk kembali ke file lokal, hapus `DATABASE_URL`.
+
+Koneksi memakai driver resmi Neon di server (bukan browser). Batasi akses ke connection string, gunakan pooled URL dan environment terpisah untuk dev/production. Saat ini aplikasi menyimpan satu snapshot JSONB; ini memudahkan migrasi tanpa perubahan perilaku, tetapi untuk banyak penulis bersamaan sebaiknya dimigrasikan ke tabel relasional/transaksi.

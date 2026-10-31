@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { fail, ok, requireApiAuth } from "@/lib/api";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 
 
 export async function POST(
@@ -11,7 +11,7 @@ export async function POST(
   if (denied) return denied;
 
   const { id } = await context.params;
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const session = db.sessions.find((item) => item.id === id);
   if (!session) return fail("Sesi tidak ditemukan", 404);
   if (session.status !== "running") return fail("Sesi ini sudah berakhir", 409);
@@ -40,6 +40,6 @@ export async function POST(
     }
   }
 
-  saveDb(db);
+  await savePersistentDb(db);
   return ok({ session });
 }

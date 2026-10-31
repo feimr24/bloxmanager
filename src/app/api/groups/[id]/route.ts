@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { fail, ok, requireApiAuth } from "@/lib/api";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 
 
 export async function PATCH(
@@ -11,7 +11,7 @@ export async function PATCH(
   if (denied) return denied;
 
   const { id } = await context.params;
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const group = db.groups.find((item) => item.id === id);
   if (!group) return fail("Grup tidak ditemukan", 404);
 
@@ -51,7 +51,7 @@ export async function PATCH(
     group.memberIds = group.memberIds.filter((memberId) => !ids.has(memberId));
   }
 
-  saveDb(db);
+  await savePersistentDb(db);
   return ok({ group: { ...group } });
 }
 
@@ -63,10 +63,10 @@ export async function DELETE(
   if (denied) return denied;
 
   const { id } = await context.params;
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const index = db.groups.findIndex((item) => item.id === id);
   if (index === -1) return fail("Grup tidak ditemukan", 404);
   db.groups.splice(index, 1);
-  saveDb(db);
+  await savePersistentDb(db);
   return ok({ success: true });
 }

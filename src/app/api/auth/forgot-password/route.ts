@@ -5,7 +5,7 @@ import { normalizeEmail, validateEmail } from "@/lib/auth-validation";
 import { resetPasswordEmail } from "@/lib/email-templates";
 import { sendMail } from "@/lib/mailer";
 import { clientIp, hitRateLimit } from "@/lib/rate-limit";
-import { loadDb } from "@/lib/store";
+import { loadPersistentDb } from "@/lib/store";
 
 const MINUTES = Math.round(RESET_TTL_MS / 60000);
 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   const emailError = validateEmail(email);
   if (emailError) return fail(emailError);
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const user = db.users.find((item) => item.email === email);
 
   // Selalu balas pesan generik agar keberadaan email tidak bisa ditebak.
@@ -37,8 +37,8 @@ export async function POST(request: NextRequest) {
 
   if (!user) return NextResponse.json(generic);
 
-  invalidateAuthTokens(user.id, "reset");
-  const { raw } = createAuthToken(user.id, "reset", RESET_TTL_MS);
+  await invalidateAuthTokens(user.id, "reset");
+  const { raw } = await createAuthToken(user.id, "reset", RESET_TTL_MS);
   const link = `${appBaseUrl(request.nextUrl.origin)}/reset-password?token=${encodeURIComponent(raw)}`;
   const mail = resetPasswordEmail({ username: user.username, link, minutes: MINUTES });
   const result = await sendMail({ to: user.email, ...mail });

@@ -1,14 +1,14 @@
 import { NextRequest } from "next/server";
 import { ACCOUNT_STATUSES, fail, ok, requireApiAuth } from "@/lib/api";
 import { encryptPassword } from "@/lib/crypto";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 import type { Account, AccountStatus } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
   const denied = await requireApiAuth();
   if (denied) return denied;
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       message: `${created.length} akun ditambahkan sekaligus (password sama)`,
       at: now,
     });
-    saveDb(db);
+    await savePersistentDb(db);
   }
 
   return ok({ created, skipped }, 201);

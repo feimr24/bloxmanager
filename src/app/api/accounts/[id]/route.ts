@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { ACCOUNT_STATUSES, fail, ok, requireApiAuth } from "@/lib/api";
 import { encryptPassword } from "@/lib/crypto";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 import type { AccountStatus } from "@/lib/types";
 
 
@@ -13,7 +13,7 @@ export async function PATCH(
   if (denied) return denied;
 
   const { id } = await context.params;
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const account = db.accounts.find((item) => item.id === id);
   if (!account) return fail("Akun tidak ditemukan", 404);
 
@@ -89,7 +89,7 @@ export async function PATCH(
   }
 
   account.updatedAt = now;
-  saveDb(db);
+  await savePersistentDb(db);
   return ok({
     account: { ...account, passwordEnc: undefined },
     removedFromGroups,
@@ -104,7 +104,7 @@ export async function DELETE(
   if (denied) return denied;
 
   const { id } = await context.params;
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const index = db.accounts.findIndex((item) => item.id === id);
   if (index === -1) return fail("Akun tidak ditemukan", 404);
 
@@ -113,6 +113,6 @@ export async function DELETE(
     group.memberIds = group.memberIds.filter((memberId) => memberId !== id);
   });
   db.sessions = db.sessions.filter((session) => session.accountId !== id);
-  saveDb(db);
+  await savePersistentDb(db);
   return ok({ success: true });
 }

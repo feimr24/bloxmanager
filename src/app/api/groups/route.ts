@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { DEVICE_TYPES, fail, ok, requireApiAuth } from "@/lib/api";
-import { groupRows, loadDb, saveDb } from "@/lib/store";
+import { groupRows, loadPersistentDb, savePersistentDb } from "@/lib/store";
 import type { DeviceType, Group } from "@/lib/types";
 
 
@@ -8,7 +8,7 @@ export async function GET() {
   const denied = await requireApiAuth();
   if (denied) return denied;
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   return ok({ groups: groupRows(db) });
 }
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   const denied = await requireApiAuth();
   if (denied) return denied;
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -43,6 +43,6 @@ export async function POST(request: NextRequest) {
     createdAt: new Date().toISOString(),
   };
   db.groups.push(group);
-  saveDb(db);
+  await savePersistentDb(db);
   return ok({ group }, 201);
 }

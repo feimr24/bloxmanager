@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { DEVICE_TYPES, fail, ok, requireApiAuth } from "@/lib/api";
-import { listSessions, loadDb, saveDb } from "@/lib/store";
+import { listSessions, loadPersistentDb, savePersistentDb } from "@/lib/store";
 import type { DeviceType, Session } from "@/lib/types";
 
 
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const denied = await requireApiAuth();
   if (denied) return denied;
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const { searchParams } = request.nextUrl;
   return ok(
     listSessions(db, {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   const denied = await requireApiAuth();
   if (denied) return denied;
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -70,6 +70,6 @@ export async function POST(request: NextRequest) {
   account.status = "active";
   account.lastActiveAt = now;
   account.updatedAt = now;
-  saveDb(db);
+  await savePersistentDb(db);
   return ok({ session }, 201);
 }

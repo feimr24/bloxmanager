@@ -3,7 +3,7 @@ import { fail, ok, requireApiAuth } from "@/lib/api";
 import { getCurrentSession, getCurrentUser } from "@/lib/auth";
 import { validatePassword } from "@/lib/auth-validation";
 import { hashPassword, verifyPassword } from "@/lib/password";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   const denied = await requireApiAuth();
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   const okCurrent = await verifyPassword(currentPassword, user.passwordHash);
   if (!okCurrent) return fail("Password saat ini salah", 401);
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const record = db.users.find((item) => item.id === user.id);
   if (!record) return fail("Akun tidak ditemukan", 404);
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
   db.authSessions = db.authSessions.filter(
     (session) => session.userId !== user.id || session.id === current?.id,
   );
-  saveDb(db);
+  await savePersistentDb(db);
 
   return ok({ ok: true, revokedOthers: true });
 }

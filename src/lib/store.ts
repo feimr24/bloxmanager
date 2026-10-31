@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { neon } from "@neondatabase/serverless";
 import { createDemoUser } from "./demo-user";
 import { createSeedDatabase } from "./seed";
 import type {
@@ -18,6 +19,64 @@ const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "blox.json");
 
 const globalStore = globalThis as unknown as { __bloxDb?: Database };
+
+function databaseUrl() {
+  const url = process.env.DATABASE_URL?.trim();
+  if (!url) return null;
+  if (!/^postgres(?:ql)?:\/\//i.test(url)) {
+    throw new Error("DATABASE_URL must be a PostgreSQL connection string.");
+  }
+  return url;
+}
+
+/** Load durable Neon state. Legacy JSON remains the local development fallback. */
+export async function loadPersistentDb(): Promise<Database> {
+  const url = databaseUrl();
+  if (!url) return loadDb();
+
+  const sql = neon(url);
+  await sql`CREATE TABLE IF NOT EXISTS blox_state (
+    id TEXT PRIMARY KEY,
+    data JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`;
+  const rows = await sql`SELECT data FROM blox_state WHERE id = 'primary'`;
+  if (rows.length) {
+    const db = rows[0].data as Database;
+    ensureAuthCollections(db);
+    globalStore.__bloxDb = db;
+    return db;
+  }
+
+  const initial = loadDb();
+  await sql`INSERT INTO blox_state (id, data) VALUES ('primary', ${JSON.stringify(initial)}::jsonb)
+    ON CONFLICT (id) DO NOTHING`;
+  const inserted = await sql`SELECT data FROM blox_state WHERE id = 'primary'`;
+  const db = inserted[0].data as Database;
+  ensureAuthCollections(db);
+  globalStore.__bloxDb = db;
+  return db;
+}
+
+/** Persist the complete state as one atomic JSONB row in Neon. */
+export async function savePersistentDb(db: Database): Promise<void> {
+  const url = databaseUrl();
+  if (!url) {
+    saveDb(db);
+    return;
+  }
+
+  const sql = neon(url);
+  await sql`CREATE TABLE IF NOT EXISTS blox_state (
+    id TEXT PRIMARY KEY,
+    data JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`;
+  await sql`INSERT INTO blox_state (id, data, updated_at)
+    VALUES ('primary', ${JSON.stringify(db)}::jsonb, NOW())
+    ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, updated_at = NOW()`;
+  globalStore.__bloxDb = db;
+}
 
 /**
  * Database lama (sebelum fitur autentikasi) belum punya koleksi user/token.

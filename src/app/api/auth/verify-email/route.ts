@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { fail, ok } from "@/lib/api";
 import { consumeAuthToken, peekAuthToken } from "@/lib/auth";
-import { loadDb, saveDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb } from "@/lib/store";
 
 /** Verifikasi bisa dipanggil dua kali (mis. React Strict Mode); token yang
  *  baru saja dipakai untuk akun yang sama tetap dianggap berhasil. */
@@ -20,12 +20,12 @@ export async function POST(request: NextRequest) {
   const token = String(body.token ?? "").trim();
   if (!token) return fail("Token verifikasi tidak ditemukan");
 
-  const record = consumeAuthToken(token, "verify");
+  const record = await consumeAuthToken(token, "verify");
   if (!record) {
-    const previous = peekAuthToken(token, "verify");
+    const previous = await peekAuthToken(token, "verify");
     if (previous?.usedAt) {
       const age = Date.now() - new Date(previous.usedAt).getTime();
-      const db = loadDb();
+      const db = await loadPersistentDb();
       const user = db.users.find((item) => item.id === previous.userId);
       if (user?.emailVerified && age >= 0 && age <= REUSE_WINDOW_MS) {
         return SUCCESS(user.username, user.email);
@@ -34,14 +34,14 @@ export async function POST(request: NextRequest) {
     return fail("Tautan verifikasi tidak valid atau sudah kedaluwarsa.", 400);
   }
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const user = db.users.find((item) => item.id === record.userId);
   if (!user) return fail("Akun tidak ditemukan", 404);
 
   if (!user.emailVerified) {
     user.emailVerified = true;
     user.updatedAt = new Date().toISOString();
-    saveDb(db);
+    await savePersistentDb(db);
   }
 
   return SUCCESS(user.username, user.email);

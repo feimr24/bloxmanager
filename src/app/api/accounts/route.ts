@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { ACCOUNT_STATUSES, fail, ok, requireApiAuth } from "@/lib/api";
 import { encryptPassword } from "@/lib/crypto";
-import { listAccounts, loadDb, saveDb } from "@/lib/store";
+import { listAccounts, loadPersistentDb, savePersistentDb } from "@/lib/store";
 import type { Account, AccountStatus } from "@/lib/types";
 
 
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const denied = await requireApiAuth();
   if (denied) return denied;
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   const { searchParams } = request.nextUrl;
   return ok(
     listAccounts(db, {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   const denied = await requireApiAuth();
   if (denied) return denied;
 
-  const db = loadDb();
+  const db = await loadPersistentDb();
   let body: Record<string, unknown>;
   try {
     body = await request.json();
@@ -82,6 +82,6 @@ export async function POST(request: NextRequest) {
     message: `Akun ${username} ditambahkan ke master account`,
     at: now,
   });
-  saveDb(db);
+  await savePersistentDb(db);
   return ok({ account: { ...account, passwordEnc: undefined } }, 201);
 }
