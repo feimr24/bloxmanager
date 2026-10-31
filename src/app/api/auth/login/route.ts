@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { fail, ok } from "@/lib/api";
 import { createSession } from "@/lib/auth";
 import { verifyPassword } from "@/lib/password";
@@ -37,17 +37,6 @@ export async function POST(request: NextRequest) {
   const valid = user ? await verifyPassword(password, user.passwordHash) : false;
   if (!user || !valid) {
     return fail("Email/username atau password salah", 401);
-  }
-
-  if (!user.emailVerified) {
-    return NextResponse.json(
-      {
-        error: "Email belum diverifikasi. Cek inbox atau kirim ulang email verifikasi.",
-        code: "EMAIL_NOT_VERIFIED",
-        email: user.email,
-      },
-      { status: 403 },
-    );
   }
 
   resetRateLimit(limitKey);

@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, MailCheck, MailPlus, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { UserPlus } from "lucide-react";
 import { AuthAlert, AuthCard } from "./auth-card";
 import { PasswordInput } from "./password-input";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 
 export function RegisterForm() {
+  const router = useRouter();
   const [values, setValues] = useState({
     email: "",
     username: "",
@@ -17,9 +19,6 @@ export function RegisterForm() {
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [result, setResult] = useState<{ email: string; emailSent: boolean; devLink?: string } | null>(null);
-  const [resent, setResent] = useState<string | null>(null);
-  const [resending, setResending] = useState(false);
 
   function update(key: keyof typeof values, value: string) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -50,11 +49,8 @@ export function RegisterForm() {
         setError(data.error ?? "Pendaftaran gagal. Coba lagi.");
         return;
       }
-      setResult({
-        email: values.email.trim().toLowerCase(),
-        emailSent: Boolean(data.emailSent),
-        devLink: data.devLink,
-      });
+      router.replace("/");
+      router.refresh();
     } catch {
       setError("Tidak dapat menghubungi server. Periksa koneksi lalu coba lagi.");
     } finally {
@@ -62,97 +58,10 @@ export function RegisterForm() {
     }
   }
 
-  async function resend() {
-    if (!result) return;
-    setResending(true);
-    setResent(null);
-    try {
-      const response = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: result.email }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data.error ?? "Gagal mengirim ulang email.");
-        return;
-      }
-      setResent(data.message ?? "Email verifikasi dikirim ulang.");
-      if (data.devLink) setResult({ ...result, emailSent: false, devLink: data.devLink });
-    } catch {
-      setError("Tidak dapat menghubungi server.");
-    } finally {
-      setResending(false);
-    }
-  }
-
-  if (result) {
-    return (
-      <AuthCard
-        title="Cek email kamu"
-        description="Kami mengirim tautan verifikasi. Akun hanya bisa dipakai setelah email terverifikasi."
-        footer={
-          <>
-            Sudah verifikasi?{" "}
-            <Link href="/login" className="font-medium text-accent hover:text-accent/80">
-              Masuk di sini
-            </Link>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <AuthAlert tone={result.emailSent ? "success" : "info"}>
-            <span className="flex items-center gap-1.5 font-medium">
-              <MailCheck className="size-3.5" />
-              {result.emailSent ? "Email verifikasi terkirim" : "Permintaan pendaftaran tersimpan sementara"}
-            </span>
-            <span className="mt-1 block">
-              {result.emailSent
-                ? <>Tautan dikirim ke <strong>{result.email}</strong>. Akun dibuat setelah verifikasi; tautan berlaku 24 jam.</>
-                : <>Email belum dikirim. Akun belum dibuat; verifikasi hanya tersedia melalui tautan mode pengembangan.</>}
-            </span>
-          </AuthAlert>
-
-          {error && <AuthAlert tone="error">{error}</AuthAlert>}
-          {resent && <AuthAlert tone="info">{resent}</AuthAlert>}
-
-          {result.devLink && (
-            <div className="rounded-xl border border-warning/30 bg-warning/[0.07] px-3.5 py-3">
-              <p className="text-[11px] font-medium text-warning">Mode pengembangan</p>
-              <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                RESEND_API_KEY dan MAIL_FROM belum tersedia, jadi email tidak benar-benar dikirim.
-                Buka tautan ini untuk verifikasi lokal:
-              </p>
-              <a
-                href={result.devLink}
-                className="mt-2 inline-block break-all text-[11px] font-medium text-accent underline underline-offset-2"
-              >
-                {result.devLink}
-              </a>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2">
-            <Button type="button" variant="secondary" onClick={resend} loading={resending} className="w-full">
-              {!resending && <MailPlus className="size-4" />}
-              Kirim ulang email verifikasi
-            </Button>
-            <Link
-              href="/login"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-transparent text-[13px] font-medium text-muted transition hover:bg-hover-strong hover:text-strong"
-            >
-              Kembali ke halaman masuk <ArrowRight className="size-3.5" />
-            </Link>
-          </div>
-        </div>
-      </AuthCard>
-    );
-  }
-
   return (
     <AuthCard
       title="Buat akun baru"
-      description="Daftarkan email dan username. Kami akan mengirim tautan verifikasi sebelum akun bisa dipakai."
+      description="Daftarkan email, username, dan password untuk membuat akun."
       footer={
         <>
           Sudah punya akun?{" "}
@@ -163,14 +72,14 @@ export function RegisterForm() {
       }
     >
       <form className="space-y-4" onSubmit={submit}>
-        <Field label="Email" htmlFor="email" hint="Untuk verifikasi">
+        <Field label="Email" htmlFor="email" hint="Gunakan email aktif; jika lupa password, hubungi admin.">
           <Input
             id="email"
             type="email"
             autoFocus
             value={values.email}
             onChange={(event) => update("email", event.target.value)}
-            placeholder="nama@perusahaan.com"
+            placeholder="nama@email.com"
             autoComplete="email"
             required
           />
@@ -213,7 +122,7 @@ export function RegisterForm() {
 
         <Button type="submit" className="w-full" size="lg" loading={saving}>
           {!saving && <UserPlus className="size-4" />}
-          Daftar & kirim verifikasi
+          Daftar
         </Button>
       </form>
     </AuthCard>

@@ -54,36 +54,14 @@ export interface User {
   email: string;
   username: string;
   passwordHash: string;
-  emailVerified: boolean;
   createdAt: string;
   updatedAt: string;
   lastLoginAt?: string;
 }
 
-export interface PendingRegistration {
-  id: string;
-  email: string;
-  username: string;
-  passwordHash: string;
-  createdAt: string;
-  expiresAt: string;
-}
-
-export type AuthTokenType = "verify" | "reset";
-
 export interface AuthUserSummary {
   username: string;
   email: string;
-}
-
-export interface AuthToken {
-  id: string;
-  userId: string;
-  type: AuthTokenType;
-  tokenHash: string;
-  expiresAt: string;
-  createdAt: string;
-  usedAt?: string;
 }
 
 export interface AuthSession {
@@ -104,9 +82,7 @@ export interface Database {
   audit: AuditEntry[];
   trend: TrendPoint[];
   users: User[];
-  authTokens: AuthToken[];
   authSessions: AuthSession[];
-  pendingRegistrations: PendingRegistration[];
 }
 
 export interface AccountRow {

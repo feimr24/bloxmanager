@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Daftar",
-  description: "Buat akun BLOX MANAGER dengan verifikasi email.",
+  description: "Buat akun BLOX MANAGER.",
 };
 
 export default async function RegisterPage() {

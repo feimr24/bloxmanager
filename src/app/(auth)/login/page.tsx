@@ -20,8 +20,7 @@ export default async function LoginPage({
 
   return (
     <LoginForm
-      verified={flag(params.verified)}
-      reset={flag(params.reset)}
+      reset={false}
       registered={flag(params.registered)}
       showDemo={process.env.NODE_ENV !== "production"}
     />

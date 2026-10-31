@@ -12,7 +12,6 @@ export function createDemoUser(): User {
     email: DEMO_EMAIL,
     username: DEMO_USERNAME,
     passwordHash: hashPasswordSync(DEMO_PASSWORD),
-    emailVerified: true,
     createdAt: now,
     updatedAt: now,
   };

@@ -19,26 +19,15 @@ Buka http://localhost:3000. Data demo (1.204 akun, 3 grup, 144 sesi) dibuat otom
 
 Ganti kredensial ini (atau hapus user demo) sebelum dipakai di lingkungan nyata.
 
-## Autentikasi & verifikasi email
+## Autentikasi
 
 - **Login** di `/login` memakai email **atau** username + password. Sesi disimpan sebagai cookie HttpOnly 30 hari.
-- **Register** di `/register` membutuhkan email, username, dan password (min. 8 karakter, huruf + angka), lalu mengirim tautan verifikasi 24 jam.
-- Pendaftaran baru hanya disimpan sebagai **pending**; record user baru dibuat setelah tautan email valid. Jika email gagal dikirim di production, pending registration dibatalkan.
-- **Lupa password** di `/forgot-password` mengirim tautan reset sekali pakai (60 menit); semua sesi lama dicabut setelah password diganti.
+- **Register** di `/register` membutuhkan email, username, dan password (min. 8 karakter, huruf + angka). Akun langsung aktif dan email harus unik.
+- Jika lupa password, pengguna menghubungi admin untuk reset manual. Fitur panel admin direncanakan terpisah.
 - Password user di-hash dengan **scrypt** (`src/lib/password.ts`), bukan dienkripsi, dan tidak pernah dikembalikan API.
 - Seluruh halaman dashboard dan endpoint data dilindungi sesi; tanpa login akan diarahkan ke `/login` atau menerima `401`.
 
-### Konfigurasi email (Resend)
-
-Verifikasi email dan reset password dikirim lewat [Resend](https://resend.com). Salin `.env.example` menjadi `.env.local` lalu isi:
-
-```bash
-RESEND_API_KEY=re_xxxxxxxx
-MAIL_FROM="BLOX MANAGER <noreply@domainkamu.com>"
-APP_URL=http://localhost:3000
-```
-
-`MAIL_FROM` harus memakai domain yang sudah diverifikasi di Resend. Tambahkan `RESEND_API_KEY` sebagai **Secret** dan `MAIL_FROM` sebagai environment variable pada Vercel untuk Production, Preview, dan Development. Jika konfigurasi email tidak ada di production, registrasi dan permintaan reset ditolak dengan pesan konfigurasi; akun tidak dibuat. Di development, tautan lokal ditampilkan di UI. Token dan URL verifikasi tidak ditulis ke server log.
+Email dan username tersimpan pada data akun untuk kebutuhan administrasi. Reset password melalui email belum diaktifkan; admin dapat membantu pengguna sampai panel admin tersedia.
 
 Perintah lain:
 

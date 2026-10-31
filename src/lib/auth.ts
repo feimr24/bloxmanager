@@ -2,19 +2,17 @@ import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { loadPersistentDb, savePersistentDb } from "./store";
-import type { AuthSession, AuthToken, AuthTokenType, User } from "./types";
+import type { AuthSession, User } from "./types";
 
 export const SESSION_COOKIE = "blox_session";
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-export const VERIFY_TTL_MS = 24 * 60 * 60 * 1000;
-export const RESET_TTL_MS = 60 * 60 * 1000;
-
-export function hashToken(raw: string) {
-  return createHash("sha256").update(raw).digest("hex");
-}
 
 function randomToken() {
   return randomBytes(32).toString("base64url");
+}
+
+function hashToken(raw: string) {
+  return createHash("sha256").update(raw).digest("hex");
 }
 
 function id(prefix: string) {
@@ -125,56 +123,5 @@ export async function clearSessionCookie() {
 export async function revokeUserSessions(userId: string) {
   const db = await loadPersistentDb();
   db.authSessions = db.authSessions.filter((session) => session.userId !== userId);
-  await savePersistentDb(db);
-}
-
-export async function createAuthToken(userId: string, type: AuthTokenType, ttlMs: number) {
-  const db = await loadPersistentDb();
-  const now = Date.now();
-  const raw = randomToken();
-  const token: AuthToken = {
-    id: id("tok"),
-    userId,
-    type,
-    tokenHash: hashToken(raw),
-    expiresAt: new Date(now + ttlMs).toISOString(),
-    createdAt: new Date(now).toISOString(),
-  };
-  db.authTokens.push(token);
-  await savePersistentDb(db);
-  return { raw, token };
-}
-
-export async function consumeAuthToken(raw: string, type: AuthTokenType) {
-  if (!raw) return null;
-  const db = await loadPersistentDb();
-  const tokenHash = hashToken(raw);
-  const token = db.authTokens.find(
-    (item) => item.tokenHash === tokenHash && item.type === type,
-  );
-  if (!token || token.usedAt) return null;
-  if (new Date(token.expiresAt).getTime() <= Date.now()) return null;
-
-  token.usedAt = new Date().toISOString();
-  await savePersistentDb(db);
-  return token;
-}
-
-/** Ambil token tanpa menandainya terpakai (untuk verifikasi idempoten). */
-export async function peekAuthToken(raw: string, type: AuthTokenType) {
-  if (!raw) return null;
-  const db = await loadPersistentDb();
-  const tokenHash = hashToken(raw);
-  return (
-    db.authTokens.find((item) => item.tokenHash === tokenHash && item.type === type) ?? null
-  );
-}
-
-/** Hanya token verifikasi terbaru yang berlaku; token lama dihapus. */
-export async function invalidateAuthTokens(userId: string, type: AuthTokenType) {
-  const db = await loadPersistentDb();
-  db.authTokens = db.authTokens.filter(
-    (token) => !(token.userId === userId && token.type === type && !token.usedAt),
-  );
   await savePersistentDb(db);
 }

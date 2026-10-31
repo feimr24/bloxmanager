@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AtSign, LogIn, MailCheck, ShieldCheck } from "lucide-react";
+import { AtSign, LogIn, ShieldCheck } from "lucide-react";
 import { AuthAlert, AuthCard } from "./auth-card";
 import { PasswordInput } from "./password-input";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,10 @@ import { Field, Input } from "@/components/ui/input";
 import { DEMO_EMAIL, DEMO_PASSWORD } from "@/lib/demo-credentials";
 
 export function LoginForm({
-  verified,
   reset,
   registered,
   showDemo,
 }: {
-  verified: boolean;
   reset: boolean;
   registered: boolean;
   showDemo: boolean;
@@ -25,14 +23,12 @@ export function LoginForm({
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setSaving(true);
     setError(null);
-    setUnverifiedEmail(null);
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -44,9 +40,6 @@ export function LoginForm({
 
       if (!response.ok) {
         setError(data.error ?? "Tidak dapat masuk. Coba lagi.");
-        if (data.code === "EMAIL_NOT_VERIFIED") {
-          setUnverifiedEmail(String(data.email ?? identifier));
-        }
         return;
       }
 
@@ -73,24 +66,12 @@ export function LoginForm({
       }
     >
       <form className="space-y-4" onSubmit={submit}>
-        {verified && (
-          <AuthAlert tone="success">
-            <span className="flex items-center gap-1.5 font-medium">
-              <MailCheck className="size-3.5" /> Email berhasil diverifikasi
-            </span>
-            <span className="mt-1 block">Silakan masuk memakai akun yang baru dibuat.</span>
-          </AuthAlert>
-        )}
         {reset && (
           <AuthAlert tone="success">
             Password baru tersimpan. Silakan masuk kembali.
           </AuthAlert>
         )}
-        {registered && !verified && (
-          <AuthAlert tone="info">
-            Akun dibuat. Verifikasi email terlebih dahulu sebelum masuk.
-          </AuthAlert>
-        )}
+        {registered && <AuthAlert tone="success">Akun berhasil dibuat. Silakan masuk.</AuthAlert>}
 
         <Field label="Email atau username" htmlFor="identifier">
           <Input
@@ -127,18 +108,6 @@ export function LoginForm({
         {error && (
           <AuthAlert tone="error">
             {error}
-            {unverifiedEmail && (
-              <>
-                {" "}
-                <Link
-                  href={`/resend-verification?email=${encodeURIComponent(unverifiedEmail)}`}
-                  className="font-medium underline underline-offset-2"
-                >
-                  Kirim ulang verifikasi
-                </Link>
-                .
-              </>
-            )}
           </AuthAlert>
         )}
 

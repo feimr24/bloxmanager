@@ -254,8 +254,6 @@ export function createSeedDatabase(): Database {
     audit,
     trend,
     users: [createDemoUser()],
-    authTokens: [],
     authSessions: [],
-    pendingRegistrations: [],
   };
 }

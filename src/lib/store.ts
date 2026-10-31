@@ -93,16 +93,8 @@ function ensureAuthCollections(db: Database) {
     db.users = [createDemoUser()];
     changed = true;
   }
-  if (!Array.isArray(db.authTokens)) {
-    db.authTokens = [];
-    changed = true;
-  }
   if (!Array.isArray(db.authSessions)) {
     db.authSessions = [];
-    changed = true;
-  }
-  if (!Array.isArray(db.pendingRegistrations)) {
-    db.pendingRegistrations = [];
     changed = true;
   }
   if (db.version < 2) {
