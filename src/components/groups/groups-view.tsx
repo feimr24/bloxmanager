@@ -53,6 +53,7 @@ export function GroupsView() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<GroupRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<GroupRow | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<{ ids: string[]; names: string[] } | null>(null);
 
   function loadGroups() {
     return fetch("/api/groups", { cache: "no-store" })
@@ -138,12 +139,21 @@ export function GroupsView() {
       if (!response.ok) throw new Error();
       pushToast(`${ids.length} akun dikeluarkan dari grup.`);
       setMemberSelected(new Set());
+      setRemoveTarget(null);
       await loadGroups();
     } catch {
       pushToast("Gagal mengeluarkan akun", "error");
     } finally {
       setBusy(false);
     }
+  }
+
+  function askRemoveMembers(ids: string[]) {
+    if (!selected || ids.length === 0) return;
+    const names = selected.members
+      .filter((member) => ids.includes(member.id))
+      .map((member) => member.username);
+    setRemoveTarget({ ids, names: names.length > 0 ? names : ids });
   }
 
   async function deleteGroup() {
@@ -419,7 +429,7 @@ export function GroupsView() {
                   <Button
                     size="sm"
                     variant="danger"
-                    onClick={() => removeMembers(Array.from(memberSelected))}
+                    onClick={() => askRemoveMembers(Array.from(memberSelected))}
                     disabled={busy}
                   >
                     <UserMinus className="size-3.5" />
@@ -494,7 +504,7 @@ export function GroupsView() {
                         <td className="px-4 py-2.5 text-right sm:px-5">
                           <button
                             type="button"
-                            onClick={() => removeMembers([member.id])}
+                            onClick={() => askRemoveMembers([member.id])}
                             aria-label={`Keluarkan ${member.username} dari grup`}
                             title="Keluarkan dari grup"
                             className="rounded-lg p-1.5 text-faint transition hover:bg-danger/10 hover:text-danger"
@@ -576,8 +586,59 @@ export function GroupsView() {
           <span className="text-strong">{deleteTarget?.memberIds.length}</span> akun.
         </div>
       </Modal>
+      <Modal
+        open={Boolean(removeTarget)}
+        onClose={() => {
+          if (!busy) setRemoveTarget(null);
+        }}
+        title="Keluarkan akun?"
+        description="Akun hanya dikeluarkan dari grup ini, tidak dihapus dari Master Account."
+        size="sm"
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => setRemoveTarget(null)}
+              disabled={busy}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (removeTarget) removeMembers(removeTarget.ids);
+              }}
+              loading={busy}
+            >
+              {!busy && <UserMinus className="size-3.5" />}
+              Yakin
+            </Button>
+          </>
+        }
+      >
+        <div className="rounded-xl border border-line bg-hover p-3.5 text-[12px] leading-relaxed text-muted">
+          Apakah anda yakin ingin mengeluarkan{" "}
+          <span className="font-medium text-strong">
+            {removeTarget ? formatRemoveNames(removeTarget.names) : ""}
+          </span>{" "}
+          dari group ini?
+          {removeTarget && removeTarget.names.length > 1 && (
+            <p className="mt-2 text-[11px] text-faint">
+              {removeTarget.names.length} akun akan dikeluarkan dari grup{" "}
+              <span className="text-body">{selected?.name}</span>.
+            </p>
+          )}
+        </div>
+      </Modal>
     </div>
   );
+}
+
+function formatRemoveNames(names: string[]) {
+  if (names.length === 0) return "";
+  if (names.length === 1) return names[0];
+  if (names.length <= 3) return names.join(", ");
+  return `${names.slice(0, 3).join(", ")} dan ${names.length - 3} akun lainnya`;
 }
 
 function GroupFormModal({
