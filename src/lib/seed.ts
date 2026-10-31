@@ -1,4 +1,5 @@
 import { encryptPassword } from "./crypto";
+import { createDemoUser } from "./demo-user";
 import type {
   Account,
   AccountStatus,
@@ -246,11 +247,14 @@ export function createSeedDatabase(): Database {
   }));
 
   return {
-    version: 1,
+    version: 2,
     accounts,
     groups,
     sessions,
     audit,
     trend,
+    users: [createDemoUser()],
+    authTokens: [],
+    authSessions: [],
   };
 }

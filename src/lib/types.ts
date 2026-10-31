@@ -49,6 +49,42 @@ export interface TrendPoint {
   suspended: number;
 }
 
+export interface User {
+  id: string;
+  email: string;
+  username: string;
+  passwordHash: string;
+  emailVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt?: string;
+}
+
+export type AuthTokenType = "verify" | "reset";
+
+export interface AuthUserSummary {
+  username: string;
+  email: string;
+}
+
+export interface AuthToken {
+  id: string;
+  userId: string;
+  type: AuthTokenType;
+  tokenHash: string;
+  expiresAt: string;
+  createdAt: string;
+  usedAt?: string;
+}
+
+export interface AuthSession {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 export interface Database {
   version: number;
   accounts: Account[];
@@ -56,6 +92,9 @@ export interface Database {
   sessions: Session[];
   audit: AuditEntry[];
   trend: TrendPoint[];
+  users: User[];
+  authTokens: AuthToken[];
+  authSessions: AuthSession[];
 }
 
 export interface AccountRow {

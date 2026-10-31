@@ -1,8 +1,11 @@
 import { NextRequest } from "next/server";
-import { fail, ok } from "@/lib/api";
+import { fail, ok, requireApiAuth } from "@/lib/api";
 import { loadDb, saveDb } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
+  const denied = await requireApiAuth();
+  if (denied) return denied;
+
   const db = loadDb();
   let body: { accountIds?: unknown; allExpired?: unknown } = {};
   try {

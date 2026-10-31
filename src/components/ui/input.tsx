@@ -63,7 +63,7 @@ export function Field({
   className,
 }: {
   label: string;
-  hint?: string;
+  hint?: ReactNode;
   error?: string;
   htmlFor?: string;
   children: ReactNode;

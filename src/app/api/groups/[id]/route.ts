@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { fail, ok } from "@/lib/api";
+import { fail, ok, requireApiAuth } from "@/lib/api";
 import { loadDb, saveDb } from "@/lib/store";
 
 
@@ -7,6 +7,9 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireApiAuth();
+  if (denied) return denied;
+
   const { id } = await context.params;
   const db = loadDb();
   const group = db.groups.find((item) => item.id === id);
@@ -56,6 +59,9 @@ export async function DELETE(
   _request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireApiAuth();
+  if (denied) return denied;
+
   const { id } = await context.params;
   const db = loadDb();
   const index = db.groups.findIndex((item) => item.id === id);

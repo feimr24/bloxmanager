@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/avatar";
+import type { AuthUserSummary } from "@/lib/types";
 
 const NAV = [
   {
@@ -36,9 +37,11 @@ const NAV = [
 export function Sidebar({
   open,
   onClose,
+  user,
 }: {
   open: boolean;
   onClose: () => void;
+  user: AuthUserSummary;
 }) {
   const pathname = usePathname();
 
@@ -170,10 +173,10 @@ export function Sidebar({
             </p>
           </div>
           <div className="flex items-center gap-2.5 rounded-xl px-1 py-1">
-            <Avatar name="Faris Alfarizi" size="sm" />
+            <Avatar name={user.username} size="sm" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[12px] font-medium text-body">Faris Alfarizi</p>
-              <p className="text-[10px] text-faint">Administrator</p>
+              <p className="truncate text-[12px] font-medium text-body">{user.username}</p>
+              <p className="truncate text-[10px] text-faint">{user.email}</p>
             </div>
             <Settings2 className="size-3.5 text-faint" />
           </div>

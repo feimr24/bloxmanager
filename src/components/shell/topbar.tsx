@@ -7,6 +7,7 @@ import {
   Bell,
   CalendarDays,
   ChevronRight,
+  LogOut,
   Menu,
   RotateCcw,
   Search,
@@ -16,7 +17,7 @@ import {
 import { Avatar } from "@/components/ui/avatar";
 import { ThemeToggle } from "./theme-toggle";
 import { cn, formatRelative } from "@/lib/utils";
-import type { OverviewResponse } from "@/lib/types";
+import type { AuthUserSummary, OverviewResponse } from "@/lib/types";
 
 const TITLES: Record<string, string> = {
   "/": "Dashboard",
@@ -32,14 +33,23 @@ interface AlertItem {
   at: string;
 }
 
-export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
+export function Topbar({
+  onOpenMenu,
+  user,
+}: {
+  onOpenMenu: () => void;
+  user: AuthUserSummary;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const title = TITLES[pathname] ?? "Dashboard";
   const searchRef = useRef<HTMLInputElement>(null);
   const notifyRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
   const [notifyOpen, setNotifyOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [reopened, setReopened] = useState<OverviewResponse["reopened"]>([]);
   const today = new Intl.DateTimeFormat("id-ID", {
@@ -87,10 +97,25 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
       if (notifyRef.current && !notifyRef.current.contains(event.target as Node)) {
         setNotifyOpen(false);
       }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  async function logout() {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Tetap arahkan ke halaman masuk meski permintaan gagal.
+    } finally {
+      router.replace("/login");
+      router.refresh();
+    }
+  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-background/85 backdrop-blur-xl">
@@ -220,19 +245,48 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
 
           <div className="mx-1 hidden h-6 w-px bg-line sm:block" />
 
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-xl p-0.5 pr-1 transition hover:bg-hover"
-            aria-label="Menu profil"
-          >
-            <Avatar name="Faris Alfarizi" size="sm" />
-            <span className="hidden text-left leading-tight lg:block">
-              <span className="block text-[11.5px] font-medium text-body">Faris Alfarizi</span>
-              <span className="flex items-center gap-1 text-[9.5px] text-faint">
-                <UserRound className="size-2.5" /> Administrator
+          <div className="relative" ref={profileRef}>
+            <button
+              type="button"
+              onClick={() => setProfileOpen((value) => !value)}
+              aria-label="Menu profil"
+              aria-expanded={profileOpen}
+              className="flex items-center gap-2 rounded-xl p-0.5 pr-1 transition hover:bg-hover"
+            >
+              <Avatar name={user.username} size="sm" />
+              <span className="hidden text-left leading-tight lg:block">
+                <span className="block max-w-[140px] truncate text-[11.5px] font-medium text-body">
+                  {user.username}
+                </span>
+                <span className="flex items-center gap-1 text-[9.5px] text-faint">
+                  <UserRound className="size-2.5" /> Administrator
+                </span>
               </span>
-            </span>
-          </button>
+            </button>
+
+            {profileOpen && (
+              <div className="animate-fade absolute right-0 top-[calc(100%+10px)] w-64 overflow-hidden rounded-xl border border-line bg-card shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)]">
+                <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+                  <Avatar name={user.username} size="sm" />
+                  <div className="min-w-0">
+                    <p className="truncate text-[12.5px] font-semibold text-strong">
+                      {user.username}
+                    </p>
+                    <p className="truncate text-[10.5px] text-faint">{user.email}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
+                  disabled={loggingOut}
+                  className="flex w-full items-center gap-2 px-4 py-3 text-left text-[12px] font-medium text-danger transition hover:bg-danger/10 disabled:opacity-60"
+                >
+                  <LogOut className="size-3.5" />
+                  {loggingOut ? "Keluar…" : "Keluar dari akun"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

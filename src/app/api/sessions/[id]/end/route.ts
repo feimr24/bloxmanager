@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { fail, ok } from "@/lib/api";
+import { fail, ok, requireApiAuth } from "@/lib/api";
 import { loadDb, saveDb } from "@/lib/store";
 
 
@@ -7,6 +7,9 @@ export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireApiAuth();
+  if (denied) return denied;
+
   const { id } = await context.params;
   const db = loadDb();
   const session = db.sessions.find((item) => item.id === id);

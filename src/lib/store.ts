@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { createDemoUser } from "./demo-user";
 import { createSeedDatabase } from "./seed";
 import type {
   Account,
@@ -18,12 +19,38 @@ const DATA_FILE = path.join(DATA_DIR, "blox.json");
 
 const globalStore = globalThis as unknown as { __bloxDb?: Database };
 
+/**
+ * Database lama (sebelum fitur autentikasi) belum punya koleksi user/token.
+ * Tambahkan tanpa menghapus data akun yang sudah ada.
+ */
+function ensureAuthCollections(db: Database) {
+  let changed = false;
+  if (!Array.isArray(db.users)) {
+    db.users = [createDemoUser()];
+    changed = true;
+  }
+  if (!Array.isArray(db.authTokens)) {
+    db.authTokens = [];
+    changed = true;
+  }
+  if (!Array.isArray(db.authSessions)) {
+    db.authSessions = [];
+    changed = true;
+  }
+  if (db.version < 2) {
+    db.version = 2;
+    changed = true;
+  }
+  return changed;
+}
+
 export function loadDb(): Database {
   if (globalStore.__bloxDb) return globalStore.__bloxDb;
 
   if (!fs.existsSync(DATA_FILE)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
     const seeded = createSeedDatabase();
+    ensureAuthCollections(seeded);
     fs.writeFileSync(DATA_FILE, JSON.stringify(seeded));
     globalStore.__bloxDb = seeded;
     return seeded;
@@ -31,6 +58,9 @@ export function loadDb(): Database {
 
   const raw = fs.readFileSync(DATA_FILE, "utf8");
   const parsed = JSON.parse(raw) as Database;
+  if (ensureAuthCollections(parsed)) {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(parsed));
+  }
   globalStore.__bloxDb = parsed;
   return parsed;
 }

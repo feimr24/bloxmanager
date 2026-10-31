@@ -1,10 +1,13 @@
 import { NextRequest } from "next/server";
-import { DEVICE_TYPES, fail, ok } from "@/lib/api";
+import { DEVICE_TYPES, fail, ok, requireApiAuth } from "@/lib/api";
 import { listSessions, loadDb, saveDb } from "@/lib/store";
 import type { DeviceType, Session } from "@/lib/types";
 
 
 export async function GET(request: NextRequest) {
+  const denied = await requireApiAuth();
+  if (denied) return denied;
+
   const db = loadDb();
   const { searchParams } = request.nextUrl;
   return ok(
@@ -18,6 +21,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = await requireApiAuth();
+  if (denied) return denied;
+
   const db = loadDb();
   let body: Record<string, unknown>;
   try {

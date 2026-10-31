@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { ACCOUNT_STATUSES, fail, ok } from "@/lib/api";
+import { ACCOUNT_STATUSES, fail, ok, requireApiAuth } from "@/lib/api";
 import { encryptPassword } from "@/lib/crypto";
 import { loadDb, saveDb } from "@/lib/store";
 import type { AccountStatus } from "@/lib/types";
@@ -9,6 +9,9 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireApiAuth();
+  if (denied) return denied;
+
   const { id } = await context.params;
   const db = loadDb();
   const account = db.accounts.find((item) => item.id === id);
@@ -81,6 +84,9 @@ export async function DELETE(
   _request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
+  const denied = await requireApiAuth();
+  if (denied) return denied;
+
   const { id } = await context.params;
   const db = loadDb();
   const index = db.accounts.findIndex((item) => item.id === id);
