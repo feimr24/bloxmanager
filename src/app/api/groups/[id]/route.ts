@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { fail, ok, requireApiAuth } from "@/lib/api";
-import { loadPersistentDb, savePersistentDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb, syncStatusesFromGroups } from "@/lib/store";
 
 
 export async function PATCH(
@@ -51,6 +51,9 @@ export async function PATCH(
     group.memberIds = group.memberIds.filter((memberId) => !ids.has(memberId));
   }
 
+  // Anggota grup otomatis aktif, akun tanpa grup otomatis tersedia.
+  syncStatusesFromGroups(db);
+
   await savePersistentDb(db);
   return ok({ group: { ...group } });
 }
@@ -67,6 +70,8 @@ export async function DELETE(
   const index = db.groups.findIndex((item) => item.id === id);
   if (index === -1) return fail("Grup tidak ditemukan", 404);
   db.groups.splice(index, 1);
+  // Akun yang kehilangan grup (karena grup dihapus) kembali tersedia.
+  syncStatusesFromGroups(db);
   await savePersistentDb(db);
   return ok({ success: true });
 }

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { ACCOUNT_STATUSES, fail, ok, requireApiAuth } from "@/lib/api";
 import { encryptPassword } from "@/lib/crypto";
-import { loadPersistentDb, savePersistentDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb, syncStatusesFromGroups } from "@/lib/store";
 import type { AccountStatus } from "@/lib/types";
 
 
@@ -87,6 +87,9 @@ export async function PATCH(
     if (Number.isNaN(parsed.getTime())) return fail("Tanggal pembuatan tidak valid");
     account.createdAt = parsed.toISOString();
   }
+
+  // Status aktif/tersedia selalu mengikuti keanggotaan grup; suspend diutamakan.
+  syncStatusesFromGroups(db, [account.id]);
 
   account.updatedAt = now;
   await savePersistentDb(db);

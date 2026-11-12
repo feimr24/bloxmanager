@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { fail, ok, requireApiAuth } from "@/lib/api";
-import { loadPersistentDb, savePersistentDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb, syncStatusesFromGroups } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   const denied = await requireApiAuth();
@@ -31,11 +31,13 @@ export async function POST(request: NextRequest) {
   if (targets.length === 0) return fail("Tidak ada akun tersuspend yang bisa dipulihkan", 404);
 
   for (const account of targets) {
-    account.status = "available";
     account.suspendedAt = undefined;
     account.suspendedUntil = undefined;
     account.updatedAt = now;
   }
+
+  // Setelah suspend dicabut, status mengikuti keanggotaan grup.
+  syncStatusesFromGroups(db, targets.map((account) => account.id));
 
   db.audit.unshift({
     id: `aud_${Date.now().toString(36)}`,

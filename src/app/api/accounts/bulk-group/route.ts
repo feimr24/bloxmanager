@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { fail, ok, requireApiAuth } from "@/lib/api";
-import { loadPersistentDb, savePersistentDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb, syncStatusesFromGroups } from "@/lib/store";
 
 
 export async function POST(request: NextRequest) {
@@ -35,6 +35,9 @@ export async function POST(request: NextRequest) {
   });
   const merged = new Set([...group.memberIds, ...validIds]);
   group.memberIds = Array.from(merged);
+
+  // Akun yang dipindahkan ke grup otomatis aktif; yang kehilangan grup menjadi tersedia.
+  syncStatusesFromGroups(db, validIds);
 
   const now = new Date().toISOString();
   db.audit.unshift({

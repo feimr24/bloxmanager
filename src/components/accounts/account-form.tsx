@@ -252,7 +252,11 @@ export function AccountFormModal({
         </Field>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Status" htmlFor="status">
+          <Field
+            label="Status"
+            htmlFor="status"
+            hint="Otomatis: aktif saat masuk grup, tersedia saat tanpa grup. Suspend selalu diutamakan."
+          >
             <Select
               id="status"
               value={values.status}
@@ -305,8 +309,10 @@ export function AccountFormModal({
         )}
 
         <p className="rounded-lg border border-line bg-hover px-3 py-2 text-[10.5px] leading-relaxed text-faint">
-          Perubahan status menjadi tersuspend akan mencatat timestamp presisi, tanggal pemulihan
-          otomatis, dan mengeluarkan akun dari semua grup.
+          Status <span className="text-body">Aktif</span> dan <span className="text-body">Tersedia</span>{" "}
+          mengikuti keanggotaan grup secara otomatis: akun dalam grup menjadi aktif, akun tanpa grup
+          menjadi tersedia. Status tersuspend mencatat timestamp presisi, tanggal pemulihan otomatis,
+          dan mengeluarkan akun dari semua grup.
         </p>
       </form>
     </Modal>

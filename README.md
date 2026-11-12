@@ -32,7 +32,7 @@ npm run build      # Production build
 ## Fitur
 
 - **Dashboard** — metrik total/aktif/tersedia/tersuspend, grafik tren 7/30 hari interaktif, alokasi perangkat, peringatan suspend, aktivitas terbaru, ekspor CSV.
-- **Master Account** — CRUD, pencarian username, filter status, sorting, paginasi server-side, password tersensor dengan reveal tercatat audit, bulk pilih & pindah grup.
+- **Master Account** — CRUD, pencarian username, filter status, sorting, paginasi server-side, password tersensor dengan reveal tercatat audit, bulk pilih & pindah grup. Status **aktif** dan **tersedia** mengikuti keanggotaan grup secara otomatis: akun yang masuk grup menjadi aktif, akun tanpa grup menjadi tersedia; status **tersuspend** selalu diutamakan.
 - **Aktivitas** — riwayat sesi, mulai/akhiri sesi dengan tipe perangkat (PC, Handphone, Redfingers), durasi live, proteksi multiple login (409).
 - **Group** — grup per environment, multi-select bulk add/remove, drag-and-drop akun ke kartu grup, edit/hapus grup.
 - **Pengaturan** — ubah username, ganti password (dengan verifikasi password lama), daftar sesi aktif, cabut sesi per perangkat, dan keluar dari semua perangkat.

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { fail, ok, requireApiAuth } from "@/lib/api";
-import { loadPersistentDb, savePersistentDb } from "@/lib/store";
+import { loadPersistentDb, savePersistentDb, syncStatusesFromGroups } from "@/lib/store";
 
 
 export async function POST(
@@ -35,9 +35,9 @@ export async function POST(
     const stillRunning = db.sessions.some(
       (item) => item.accountId === account.id && item.status === "running" && item.id !== session.id,
     );
-    if (!stillRunning && account.status === "active") {
-      account.status = "available";
-    }
+    // Sesi terakhir berakhir: status kembali mengikuti keanggotaan grup,
+    // bukan selalu "available" — akun yang masih di grup tetap aktif.
+    if (!stillRunning) syncStatusesFromGroups(db, [account.id]);
   }
 
   await savePersistentDb(db);

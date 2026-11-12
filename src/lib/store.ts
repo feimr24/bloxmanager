@@ -44,7 +44,9 @@ export async function loadPersistentDb(): Promise<Database> {
   const rows = await sql`SELECT data FROM blox_state WHERE id = 'primary'`;
   if (rows.length) {
     const db = rows[0].data as Database;
-    if (ensureAuthCollections(db)) {
+    const authChanged = ensureAuthCollections(db);
+    const statusChanged = syncStatusesFromGroups(db).length > 0;
+    if (authChanged || statusChanged) {
       await sql`UPDATE blox_state SET data = ${JSON.stringify(db)}::jsonb, updated_at = NOW()
         WHERE id = 'primary'`;
     }
@@ -57,7 +59,12 @@ export async function loadPersistentDb(): Promise<Database> {
     ON CONFLICT (id) DO NOTHING`;
   const inserted = await sql`SELECT data FROM blox_state WHERE id = 'primary'`;
   const db = inserted[0].data as Database;
-  ensureAuthCollections(db);
+  const authChanged = ensureAuthCollections(db);
+  const statusChanged = syncStatusesFromGroups(db).length > 0;
+  if (authChanged || statusChanged) {
+    await sql`UPDATE blox_state SET data = ${JSON.stringify(db)}::jsonb, updated_at = NOW()
+      WHERE id = 'primary'`;
+  }
   globalStore.__bloxDb = db;
   return db;
 }
@@ -114,7 +121,9 @@ export function loadDb(): Database {
 
   const raw = fs.readFileSync(DATA_FILE, "utf8");
   const parsed = JSON.parse(raw) as Database;
-  if (ensureAuthCollections(parsed)) {
+  const authChanged = ensureAuthCollections(parsed);
+  const statusChanged = syncStatusesFromGroups(parsed).length > 0;
+  if (authChanged || statusChanged) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(parsed));
   }
   globalStore.__bloxDb = parsed;
@@ -139,6 +148,47 @@ export function groupLookup(db: Database) {
     }
   }
   return map;
+}
+
+/**
+ * Status akun diturunkan dari keanggotaan grup dan sesi berjalan:
+ * - anggota minimal satu grup ATAU punya sesi berjalan -> `active`
+ * - tanpa grup dan tanpa sesi -> `available`
+ * - `suspended` selalu diutamakan dan tidak pernah ditimpa.
+ *
+ * Panggil setelah setiap perubahan keanggotaan grup atau akhir sesi agar status
+ * akun tetap konsisten. Mengembalikan daftar id akun yang statusnya berubah.
+ */
+export function syncStatusesFromGroups(
+  db: Database,
+  accountIds?: Iterable<string>,
+): string[] {
+  const memberIds = new Set<string>();
+  for (const group of db.groups) {
+    for (const memberId of group.memberIds) memberIds.add(memberId);
+  }
+  const runningIds = new Set<string>();
+  for (const session of db.sessions) {
+    if (session.status === "running") runningIds.add(session.accountId);
+  }
+
+  const targets = accountIds ? new Set(accountIds) : null;
+  const changed: string[] = [];
+  const now = new Date().toISOString();
+
+  for (const account of db.accounts) {
+    if (targets && !targets.has(account.id)) continue;
+    if (account.status === "suspended") continue;
+    const inUse = memberIds.has(account.id) || runningIds.has(account.id);
+    const next: AccountStatus = inUse ? "active" : "available";
+    if (account.status !== next) {
+      account.status = next;
+      account.updatedAt = now;
+      changed.push(account.id);
+    }
+  }
+
+  return changed;
 }
 
 export function toAccountRow(
